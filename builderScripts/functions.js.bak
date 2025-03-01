@@ -1,0 +1,1027 @@
+let componentCounter = 0; // For unique component IDs
+const apiUrl = "http://localhost:3000/";
+
+let componentFiles = [];
+let stylesEditsArray = [];
+
+$(document).ready(function () {
+    componentCounter = 0
+    getComponents();
+});
+
+//GET COMPONENTS FROM BACKEND
+function getComponents() {
+    $.ajax({
+        url: apiUrl + "component-files",
+        method: 'GET',
+        success: function (data) {
+            componentFiles = data;
+            // console.log("componentFiles= ", componentFiles);
+            parseComponents();
+        },
+        error: function (err) {
+            console.error('Error fetching component files:', err);
+        }
+    });
+}
+
+//LOAD COMPONENTS
+function parseComponents() {
+    // Group components by type
+    const groupedComponents = {};
+    componentFiles.forEach(item => {
+        if (!groupedComponents[item.type]) {
+            groupedComponents[item.type] = [];
+        }
+        groupedComponents[item.type].push(item.path);
+    });
+
+    // Sort groupedComponents by alphabetical order a to z
+    const sortedGroupedComponents = Object.keys(groupedComponents).sort().reduce((acc, key) => {
+        acc[key] = groupedComponents[key];
+        return acc;
+    }, {});
+
+    // Create HTML structure dynamically
+    $.each(sortedGroupedComponents, function (type, paths) {
+        const categoryWrapper = $('<div class="toggleItem"></div>');
+
+        // Create the categoryTitle div
+        const categoryTitle = $('<div class="toggleTitle"></div>').text(type);
+
+        categoryWrapper.append(categoryTitle);
+
+        const categoryPreviewer = $('<div class="previewComponents"></div>');
+        categoryPreviewer.append("<a href='javascript:closePreviewer();' class='close'>close</a>");
+        categoryPreviewer.append("<div class='itemsList'></div>");
+        categoryWrapper.append(categoryPreviewer);
+
+        // Loop through paths and create categoryItem divs
+        paths.forEach(function (path) {
+            const categoryItem = $('<div class="item"></div>');
+
+            const link = $('<a class="btn btn-primary" id="btn_' + path.replace(".", "") + '">Use component</a>').attr('href', 'javascript:useComponent("' + path + '");');
+
+
+            // Fetch the HTML content for the component from the backend
+            $.ajax({
+                url: apiUrl + "component/" + type + "/" + path, // Call the backend endpoint to get the HTML
+                method: 'GET',
+                success: function (data) {
+                    // Inject the HTML content into the item
+                    const htmlContent = $('<div class="preview"></div>').html(data);
+                    const componentCardBottom = $('<div class="componentCardBottom d-flex align-items-center justify-content-between"></div>');
+                    const componentName = $('<div class="componentName"></div>').text(path);
+                    const componentActions = $('<div class="actions"></div>');
+
+                    componentActions.append(link)
+                    componentActions.prepend("<span class='usedspan fs-6 fst-italic text-muted fw-light'>Already used<span>")
+
+                    componentCardBottom.append(componentName);
+                    componentCardBottom.append(componentActions);
+
+                    categoryItem.append(htmlContent);
+                    categoryItem.append(componentCardBottom);
+                },
+                error: function () {
+                    console.error('Failed to load component: ' + path);
+                }
+            });
+
+            // Append the categoryItem div to the wrapper
+            categoryPreviewer.find('.itemsList').append(categoryItem);
+        });
+
+        // Append the wrapper to the components container
+        $('#components').append(categoryWrapper);
+
+        categoryPreviewer.wrap("<div class='previewerOverlay'></div>")
+    });
+
+    $('.toggleTitle').click(function () {
+        if ($(this).hasClass('open')) {
+            closePreviewer();
+        } else {
+            closePreviewer();
+            $(this).parent().find('.previewerOverlay').addClass('show');
+            $(this).addClass('open')
+
+            // if (!$(this).parents('.components').hasClass('expand')) {
+            //     $(this).parents('.components').addClass('expand')
+            // }
+        }
+    })
+
+}
+
+//ADD COMPONENT TO WEBSITE
+function useComponent(path) {
+    // Add component to final website
+    const selectedComponent = componentFiles.find(item => item.path === path);
+    const componentId = 'component-' + componentCounter++;
+
+    if (selectedComponent) {
+        // Make an AJAX call to fetch the component HTML from the backend
+        $.ajax({
+            url: apiUrl + "component/" + selectedComponent.type + "/" + selectedComponent.path, // Use backend API to get the component HTML
+            method: 'GET',
+            success: function (data) {
+                // Create the HTML structure for the component
+                const componentWrapper = `<div class='component-wrapper' id='${componentId}'>
+                        ${data}
+                        <div class="removeOnBuild">
+                            <a class='btn btn-primary edit-btn' href='javascript:editComponent("${componentId}")'>Edit</a>
+                            <a class='btn btn-danger remove-btn' href='javascript:removeComponent("${componentId}")'>Remove</a>
+                        </div>`;
+
+                // Append the component wrapper to the output container
+                $('#outputContainer').append(componentWrapper);
+
+
+                $("#btn_" + path.replace(".", "")).parent().addClass('used');
+
+                // $('#componentPlacedOnWebsite').find('.toast-body').html("Component <b>" + path + "</b> added")
+
+                // new bootstrap.Toast($('#componentPlacedOnWebsite'), {
+
+                // }).show();
+
+                closePreviewer();
+            },
+            error: function () {
+                console.error('Failed to add component: ' + selectedComponent.path);
+            }
+        });
+    }
+
+
+}
+
+//REMOVE COMPONENT FROM WEBSITE AFTER BEING ADDED
+function removeComponent(id) {
+    // Remove component from final website
+    $('#outputContainer').find('#' + id).remove();
+}
+
+//DOWNLOAD FINAL WEBSITE
+function buildWebsite() {
+    try {
+        // Clone the output container and remove the remove buttons
+        let finalHTML = $('#outputContainer').clone();
+        finalHTML.find('.removeOnBuild').remove();
+
+        // Create the final HTML structure
+        const finalHtml = `<!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Downloaded Website</title>
+                    <link rel="preconnect" href="https://rsms.me/">
+                    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+                    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+                    <style>
+                        ${stylesEditsArray.map(style => `${style}`).join('')}
+                    </style>
+                </head>
+                <body>
+                    ${finalHTML.html()}
+                    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+                </body>
+                </html>`;
+
+        // Create a Blob from the final HTML
+        const blob = new Blob([finalHtml], {
+            type: 'text/html'
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'website.html';
+        link.click();
+
+        // Provide user feedback
+        console.log('Website download started.');
+    } catch (error) {
+        console.error('Error downloading website:', error);
+        alert('An error occurred while downloading the website.');
+    }
+}
+
+//CLOSE THE PREVIEW COMPONENTS WINDOW
+function closePreviewer() {
+    $('.previewerOverlay').removeClass('show');
+    $('.toggleTitle').removeClass('open')
+    // $('.components').removeClass('expand')
+}
+
+//OPEN 'ADD NEW COMPONENT' WINDOW
+function addNewcomponent() {
+
+    $.ajax({
+        url: apiUrl + "component-types", // Call the backend API to get component types
+        method: 'GET',
+        success: function (data) {
+            // Assuming data is an array of component types
+            const select = $('#newComponentType');
+            data.forEach(function (type) {
+                const option = $('<option></option>').val(type).text(type.charAt(0).toUpperCase() + type.slice(1)); // Capitalize first letter
+                select.append(option);
+            });
+
+            select.append("<option value='other'>Other</option>")
+
+            $('.newComponentPopup').addClass('show');
+
+            $('#newComponentType').change(function () {
+                const selectedValue = $(this).val();
+                if (selectedValue === 'other') {
+                    $('#newComponentType').addClass('d-none')
+                    $('#customTypeInput').removeClass('d-none').focus();
+                } else {
+                    $('#newComponentType').removeClass('d-none');
+                    $('#customTypeInput').addClass('d-none').val('');
+                }
+            });
+
+            $(document).mouseup(function (e) {
+                var container = $(".newComponentPopup .content");
+
+                if (!container.is(e.target) && container.has(e.target).length === 0) {
+                    closePopup();
+                }
+            });
+
+            $(document).on('keydown', function (e) {
+                if (e.keyCode === 27) { // ESC
+                    closePopup();
+                }
+            });
+
+        },
+        error: function (err) {
+            console.error('Error fetching component types:', err);
+        }
+    });
+
+
+}
+
+//CLOSE ALL POPUPS
+function closePopup() {
+    $('.popup').removeClass('show');
+}
+
+//VALIDATE THE INPUT OF THE 'ADD NEW COMPONENT' FORM
+function validateNewComponentForm() {
+    var once = false;
+
+    if (areAllInputsFilled()) {
+        // Send data to the server using AJAX
+        $.ajax({
+            url: apiUrl + "create-file", // The back-end endpoint
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                type: $('#newComponentType').val() === 'other' ? $('#customTypeInput').val() : $('#newComponentType').val(),
+                filename: $('#newComponentName').val(),
+                content: $('#newComponentStructure').val()
+            }),
+            success: function(response) {
+
+                console.log('Response from server:', response);
+
+                $('#newComponentForm')[0].reset();
+                $('#newComponentForm').removeClass('was-validated');
+                $('#newComponentForm .form-select').removeClass('is-valid is-invalid');
+                $('#newComponentForm .form-control').removeClass('is-valid is-invalid');
+
+                closePopup();
+
+                console.log('success')
+
+                new bootstrap.Toast($('#newComponentSuccess'), {
+
+                }).show();
+            },
+            error: function(xhr, status, error) {
+                alert("Error creating file: " + error);
+            }
+        });
+    } else {
+        if (!once) {
+            once = true;
+            $('#newComponentForm .is-invalid').each(function() {
+                $(this).on('change', function() {
+                    areAllInputsFilled();
+                })
+            });
+        }
+    }
+}
+
+//CHECK IF ALL FIELDS ARE FILLED
+function areAllInputsFilled() {
+    var res = false;
+
+    var componentType = $('#newComponentType').val();
+    var componentNewType = $('#customTypeInput').val();
+    var componentName = $('#newComponentName').val();
+    var componentStructure = $('#newComponentStructure').val();
+
+
+    if (componentType == null) {
+        $('#newComponentType').addClass('is-invalid');
+    } else {
+        if (componentType === 'other') {
+            if (componentNewType === '') {
+                $('#customTypeInput').addClass('is-invalid');
+            } else {
+                componentType = componentNewType;
+                $('#customTypeInput').removeClass('is-invalid').addClass('is-valid');
+            }
+        } else {
+            $('#newComponentType').removeClass('is-invalid').addClass('is-valid');
+        }
+
+    }
+
+    if (componentName === '') {
+        $('#newComponentName').addClass('is-invalid');
+    } else {
+        $('#newComponentName').removeClass('is-invalid').addClass('is-valid');
+    }
+
+    if (componentStructure === '') {
+        $('#newComponentStructure').addClass('is-invalid');
+    } else {
+        $('#newComponentStructure').removeClass('is-invalid').addClass('is-valid');
+    }
+
+    if (componentType != null && newComponentName != '' && componentStructure != '') {
+        res = true
+    }
+
+    return res;
+}
+
+$(document).mouseup(function(e) {
+    var container = $(".previewComponents");
+
+    if (!container.is(e.target) && container.has(e.target).length === 0) {
+        closePreviewer();
+    }
+});
+
+$(document).on('keydown', function(e) {
+    if (e.keyCode === 27) { // ESC
+        closePreviewer();
+    }
+});
+
+function editComponent(componentId) {
+    const componentElement = document.getElementById(componentId);
+    if (!componentElement) return;
+
+    openStyleEditor(componentElement);
+}
+
+function openStyleEditor(component) {
+    selectedComponent = component;
+    selectedElement = component;
+
+    generateElementList(selectedComponent.id);
+
+    $('.styleEditorPopup').addClass('show');
+}
+
+function closeStyleEditor() {
+    $('.styleEditorPopup').removeClass('show');
+}
+
+function generateElementList(componentId) {
+    const component = document.getElementById(componentId);
+    if (!component) return;
+
+    const container = document.getElementById("elementListContainer");
+    if (!container) return;
+
+    container.innerHTML = ""; // Clear previous list
+
+    function createList(parentElement) {
+        const ul = document.createElement("ul");
+        const children = Array.from(parentElement.children).filter(child =>
+            !child.classList.contains("removeOnBuild")
+        );
+
+        const tagMap = new Map();
+
+        children.forEach((child) => {
+            const tag = child.tagName.toLowerCase();
+            if (!tagMap.has(tag)) {
+                tagMap.set(tag, []);
+            }
+            tagMap.get(tag).push(child);
+        });
+
+        tagMap.forEach((elements, tag) => {
+            if (elements.length > 1) {
+                const groupLi = document.createElement("li");
+                const groupDiv = document.createElement("div");
+                groupDiv.className = "liTitle";
+                groupDiv.textContent = `${tag}`;
+                groupLi.appendChild(groupDiv);
+                ul.appendChild(groupLi);
+
+                const groupUl = document.createElement("ul");
+                groupLi.appendChild(groupUl);
+
+                elements.forEach((child, index) => {
+                    const individualLi = document.createElement("li");
+                    individualLi.classList.add("singleElement");
+                    individualLi.textContent = `${tag}:nth-child(${index + 1})`;
+                    groupUl.appendChild(individualLi);
+
+                    if (child.children.length > 0) {
+                        individualLi.appendChild(createList(child));
+                    }
+                });
+            } else {
+                const individualLi = document.createElement("li");
+                if (elements[0].children.length > 0) {
+                    const div = document.createElement("div");
+                    div.className = "liTitle";
+                    div.textContent = `${tag}`;
+                    individualLi.appendChild(div);
+                } else {
+                    individualLi.textContent = `${tag}`;
+                }
+                ul.appendChild(individualLi);
+
+                if (elements[0].children.length > 0) {
+                    individualLi.appendChild(createList(elements[0]));
+                }
+            }
+        });
+
+        return ul;
+    }
+
+    // Create the root element label
+    const rootLi = document.createElement("li");
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "liTitle";
+    groupDiv.textContent = `#${componentId}`;
+    rootLi.appendChild(groupDiv);
+    container.appendChild(rootLi);
+
+    // Generate and append the list of child elements
+    const rootList = createList(component);
+    rootLi.appendChild(rootList);
+
+    $('.liTitle').each(function () {
+        let thisText = $(this).text();
+        $(this).html("<div class='groupToggle'></div><div class='groupTitle'>" + thisText + "</div>")
+    });
+    $('.singleElement').each(function () {
+        let thisText = $(this).text();
+        $(this).html("<div class='groupTitle'>" + thisText + "</div>")
+    });
+    $('.groupToggle').click(function () {
+        if ($(this).parent().parent().hasClass('expanded')) {
+            $(this).parent().parent().find('>ul').slideUp();
+            $(this).parent().parent().removeClass('expanded');
+        } else {
+            $(this).parent().parent().find('>ul').slideDown();
+            $(this).parent().parent().addClass('expanded');
+        }
+    })
+    $('.groupTitle').click(function () {
+        const elementText = $(this).text();
+        let selectorParts = [];
+        let lastTag = '';
+        let hasNthChild = elementText.includes(':nth-child');
+
+        // Start with current element
+        let $current = $(this).closest('li');
+
+        // Build selector from bottom up
+        while ($current.length) {
+            let text = "";
+            if ($current.hasClass('singleElement')) {
+                text = $current.find('> .groupTitle').text();
+            } else {
+                text = $current.find('> .liTitle .groupTitle').text();
+            }
+
+            // Extract the tag name without nth-child part
+            let currentTag = text.split(':')[0];
+
+            // Only check for redundancy if we're dealing with nth-child selectors
+            if (hasNthChild) {
+                if (currentTag !== lastTag) {
+                    selectorParts.unshift(text);
+                    lastTag = currentTag;
+                }
+            } else {
+                // If no nth-child involved, add all elements
+                selectorParts.unshift(text);
+            }
+
+            $current = $current.parent().closest('li');
+        }
+
+        // Create the final selector
+        const selector = selectorParts.join(' > ');
+
+        const elementStyles = getStyles(selector);
+
+        // Update the cssSelector element with formatted styles
+        $('#cssSelector').html(`
+            <div class='text-muted'>${selector}</div>
+            <div class="styles-container">${formatStylesForDisplay(elementStyles)}</div>
+        `);
+
+        // Add change listeners to the new inputs
+        setTimeout(function () {
+            $('.style-value-input').on('input change', function () {
+                const property = $(this).data('property');
+                const value = $(this).val();
+                applyStyle(selector, property, value);
+            });
+        }, 1000);
+
+        pickerjs();
+    });
+
+}
+
+const compositeProperties = {
+    'border': ['border-width', 'border-style', 'border-color'],
+    'padding': ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'],
+    'margin': ['margin-top', 'margin-right', 'margin-bottom', 'margin-left']
+};
+
+function formatStylesForDisplay(styles) {
+    let html = '';
+
+    // Group styles by composite properties
+    const grouped = {};
+    const processedProperties = new Set();
+
+    styles.forEach(style => {
+        let isSubProperty = false;
+        let mainProperty = style.property;
+
+        // Check if this is a sub-property
+        for (const [main, subs] of Object.entries(compositeProperties)) {
+            if (subs.includes(style.property)) {
+                mainProperty = main;
+                isSubProperty = true;
+                break;
+            }
+        }
+
+        if (!grouped[mainProperty]) {
+            grouped[mainProperty] = [];
+        }
+
+        // Only add if it's not already processed
+        if (!processedProperties.has(style.property)) {
+            grouped[mainProperty].push(style);
+            processedProperties.add(style.property);
+        }
+    });
+
+    // Generate HTML for each group
+    for (const [mainProperty, styleGroup] of Object.entries(grouped)) {
+        html += `<div class="style-group">`;
+
+        // Add main property if it's a composite
+        if (compositeProperties[mainProperty]) {
+            const mainStyle = styleGroup.find(s => s.property === mainProperty);
+            if (mainStyle) {
+                html += createInputRow(mainStyle, true);
+            }
+            // Add sub-properties
+            styleGroup.forEach(style => {
+                if (style.property !== mainProperty) {
+                    html += createInputRow(style, false);
+                }
+            });
+        } else {
+            // Regular property
+            styleGroup.forEach(style => {
+                html += createInputRow(style, false);
+            });
+        }
+
+        html += `</div>`;
+    }
+
+    return html;
+}
+
+function updateCompositeProperty(selector, mainProperty, subProperty, value) {
+    const element = document.querySelector(selector);
+    if (!element) return;
+
+    // Get all current values of the composite property
+    const computedStyle = window.getComputedStyle(element);
+    const currentValues = {};
+
+    // First, get all current sub-property values
+    if (compositeProperties[mainProperty]) {
+        compositeProperties[mainProperty].forEach(prop => {
+            currentValues[prop] = computedStyle.getPropertyValue(prop).trim();
+        });
+    }
+
+    // Update the changed sub-property
+    currentValues[subProperty] = value;
+
+    // Construct the composite value based on property type
+    let compositedValue = '';
+    if (mainProperty === 'border') {
+        compositedValue = `${currentValues['border-width']} ${currentValues['border-style']} ${currentValues['border-color']}`;
+    } else {
+        // For margin and padding
+        const top = currentValues[`${mainProperty}-top`];
+        const right = currentValues[`${mainProperty}-right`];
+        const bottom = currentValues[`${mainProperty}-bottom`];
+        const left = currentValues[`${mainProperty}-left`];
+
+        if (top === '0px' && right === '0px' && bottom === '0px' && left === '0px') {
+            compositedValue = '0px'; // All sides are 0px
+        } else if (top === bottom && right === left) {
+            if (top === right) {
+                compositedValue = top; // All sides are the same
+            } else {
+                compositedValue = `${top} ${right}`; // Top/bottom and right/left are the same
+            }
+        } else if (right === left) {
+            compositedValue = `${top} ${right} ${bottom}`; // Top, right/left, bottom
+        } else {
+            compositedValue = `${top} ${right} ${bottom} ${left}`; // All sides are different
+        }
+    }
+
+    // Update both the composite and individual property
+    element.style[mainProperty] = compositedValue;
+    element.style[subProperty] = value;
+
+    // Store the composite change and remove sub-properties
+    updateStylesArray(selector, mainProperty, compositedValue);
+    if (compositeProperties[mainProperty]) {
+        compositeProperties[mainProperty].forEach(prop => {
+            removeStyleFromArray(selector, prop);
+        });
+    }
+
+    // Update the displayed value in the composite input if it exists
+    const compositeInput = document.querySelector(`.style-value-input[data-property="${mainProperty}"]`);
+    if (compositeInput) {
+        compositeInput.value = compositedValue;
+    }
+}
+
+function updateIndividualProperties(selector, mainProperty, value) {
+    const element = document.querySelector(selector);
+    if (!element) return;
+
+    const values = value.split(' ').map(v => v.trim());
+    const subProperties = compositeProperties[mainProperty];
+
+    if (!subProperties) return; // Ensure subProperties is defined
+
+    if (mainProperty === 'border') {
+        // Handle border composite value
+        const [borderWidth, borderStyle, borderColor] = values;
+        element.style['border-width'] = borderWidth || '';
+        element.style['border-style'] = borderStyle || '';
+        element.style['border-color'] = borderColor || '';
+
+        updateStylesArray(selector, 'border-width', borderWidth);
+        updateStylesArray(selector, 'border-style', borderStyle);
+        updateStylesArray(selector, 'border-color', borderColor);
+
+        // Update the corresponding input fields
+        document.querySelector(`.style-value-input[data-property="border-width"]`).value = parseInt(borderWidth) || 0;
+        document.querySelector(`.style-value-input[data-property="border-style"]`).value = borderStyle || '';
+        document.querySelector(`.style-value-input[data-property="border-color"]`).value = borderColor || 'transparent';
+
+    } else {
+        // Handle margin/padding composite value
+        let top, right, bottom, left;
+        if (values.length === 1) {
+            top = right = bottom = left = values[0];
+        } else if (values.length === 2) {
+            top = bottom = values[0];
+            right = left = values[1];
+        } else if (values.length === 3) {
+            top = values[0];
+            right = left = values[1];
+            bottom = values[2];
+        } else if (values.length === 4) {
+            top = values[0];
+            right = values[1];
+            bottom = values[2];
+            left = values[3];
+        }
+
+        const individualValues = [top, right, bottom, left];
+        subProperties.forEach((prop, index) => {
+            let propertyValue = individualValues[index];
+            if (!propertyValue.includes('px') && (prop.includes('width') || prop.includes('margin') || prop.includes('padding'))) {
+                propertyValue += 'px';
+            }
+
+            element.style[prop] = propertyValue;
+            updateStylesArray(selector, prop, propertyValue);
+
+            const input = document.querySelector(`.style-value-input[data-property="${prop}"]`);
+            if (input) {
+                let inputValue = individualValues[index];
+                if (input.type === 'number') {
+                    inputValue = parseInt(individualValues[index]) || 0;
+                } else if (input.type === 'color' && propertyValue.startsWith('rgb')) {
+                    inputValue = rgbToHex(propertyValue);
+                }
+                input.value = inputValue;
+            }
+        });
+
+        updateStylesArray(selector, mainProperty, value);
+        if (compositeProperties[mainProperty]) {
+            compositeProperties[mainProperty].forEach(prop => {
+                removeStyleFromArray(selector, prop);
+            });
+        }
+    }
+}
+
+function removeStyleFromArray(selector, property) {
+    const index = stylesEditsArray.findIndex(style => style.startsWith(selector) && style.includes(property));
+    if (index !== -1) {
+        stylesEditsArray.splice(index, 1);
+    }
+}
+
+function applyStyle(selector, property, value) {
+    const element = document.querySelector(selector);
+    if (!element) return;
+
+    // Add px unit for numeric values
+    if ((property.includes('width') || property.includes('size') ||
+        property.includes('margin') || property.includes('padding')) &&
+        !value.toString().includes('px')) {
+        value = value + 'px';
+    }
+
+    // Check if this is a sub-property of a composite property
+    for (const [main, subs] of Object.entries(compositeProperties)) {
+        if (subs.includes(property)) {
+            updateCompositeProperty(selector, main, property, value);
+            return;
+        }
+    }
+
+    // Check if this is a composite property
+    if (compositeProperties[property]) {
+        updateIndividualProperties(selector, property, value);
+        return;
+    }
+
+    // Handle regular properties
+    element.style[property] = value;
+    updateStylesArray(selector, property, value);
+}
+
+function getStyles(element) {
+    let styles = [];
+    const targetElement = document.querySelector(element);
+    if (!targetElement) return styles;
+
+    let elementStyles = window.getComputedStyle(targetElement);
+
+    // Only get specific styles we're interested in
+    const propertiesToGet = [
+        'color',
+        'border',
+        'border-style',
+        'border-width',
+        'border-color',
+        'padding',
+        'padding-top',
+        'padding-right',
+        'padding-bottom',
+        'padding-left',
+        'margin',
+        'margin-top',
+        'margin-right',
+        'margin-bottom',
+        'margin-left',
+        'font-size',
+        'background-color'
+    ];
+
+    propertiesToGet.forEach(prop => {
+        styles.push({
+            property: prop,
+            value: elementStyles.getPropertyValue(prop)
+        });
+    });
+
+    return styles;
+}
+
+function createInputRow(style, isComposite) {
+    let inputType = 'text';
+    let inputValue = style.value;
+    // console.log(style.value)
+    let additionalElement = '';
+
+    if (style.property.includes('color')) {
+        inputType = 'text';
+        inputValue == 'rgba(0, 0, 0, 0)' ? inputValue = 'transparent' : inputValue;
+        additionalElement = '<div class="pickrjs" data-property="' + style.property + '" ></div>';
+    } else if (style.property.includes('size') || style.property.includes('width') ||
+        style.property.includes('margin') || style.property.includes('padding')) {
+        if (isComposite) {
+            inputType = 'text';
+            inputValue = style.value === '0' ? '0px' : style.value; // Ensure '0px' for composite properties
+        } else {
+            inputType = 'number';
+            inputValue = parseInt(inputValue) || 0;
+        }
+    }
+
+    return `<div class="style-row ${isComposite ? 'composite' : 'sub-property'}">
+        <span class="style-property">${style.property}:</span>
+        <div class="flex align-items-center">
+            <input type="${inputType}" 
+                class="style-value-input" 
+                id="${style.property}"
+                data-property="${style.property}" 
+                value="${inputValue}"
+                ${inputType === 'number' ? 'step="1"' : ''}
+            />
+            ${inputType === 'number' && !isComposite ? '<span class="unit">px</span>' : ''}
+            ${additionalElement}
+        </div>
+    </div>`;
+}
+
+function updateStylesArray(selector, property, value) {
+    const styleRule = `${selector} {${property} : ${value};}`;
+    const existingIndex = stylesEditsArray.findIndex(style => style.startsWith(selector) && style.includes(property));
+
+    if (existingIndex !== -1) {
+        stylesEditsArray[existingIndex] = styleRule;
+    } else {
+        stylesEditsArray.push(styleRule);
+    }
+
+    // console.log(stylesEditsArray)
+}
+
+function rgbToHex(rgb) {
+    // Remove rgb() or rgba() and split values
+    const values = rgb.match(/\d+/g);
+    if (!values || values.length < 3) return '#000000';
+
+    // Take only the first 3 values (RGB) and ignore alpha if present
+    const rgbValues = values.slice(0, 3);
+
+    const hex = rgbValues.map(x => {
+        const hex = parseInt(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+
+    // Ensure exactly 6 characters by truncating or padding
+    return '#' + hex.slice(0, 6).padEnd(6, '0');
+}
+
+function pickerjs() {
+    // font-color
+    const fontColor_pickrjs = Pickr.create({
+        el: '.pickrjs[data-property="color"]',
+        theme: 'monolith',
+        default: '#000000',
+        defaultRepresentation: 'HEXA',
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: {
+                hex: true,
+                rgba: true,
+                input: true,
+                clear: true,
+                save: true,
+                copy: true
+            }
+        }
+    });
+
+    fontColor_pickrjs.on('init', (instance) => {
+        fontColor_pickrjs.setColor($('#color').val());
+        instance.setColor(instance.getColor().toHEXA().toString());
+    });
+
+    fontColor_pickrjs.on('save', (color) => {
+        if (color == null) return;
+        const hexaColor = color.toHEXA().toString();
+        if (hexaColor.slice(-2) == '00') {
+            $('#color').val('transparent');
+        } else {
+            $('#color').val(hexaColor);
+        }
+        $('#color').trigger('change');
+    });
+
+    fontColor_pickrjs.on('clear', () => {
+        fontColor_pickrjs.setColor('rgba(0, 0, 0, 0)');
+    });
+
+    // border-color
+    const borderColor_pickrjs = Pickr.create({
+        el: '.pickrjs[data-property="border-color"]',
+        theme: 'monolith',
+        default: '#000000',
+        defaultRepresentation: 'HEXA',
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: {
+                hex: true,
+                rgba: true,
+                input: true,
+                clear: true,
+                save: true,
+                copy: true
+            }
+        }
+    });
+
+    borderColor_pickrjs.on('init', (instance) => {
+        borderColor_pickrjs.setColor($('#border-color').val());
+        instance.setColor(instance.getColor().toHEXA().toString());
+    });
+
+    borderColor_pickrjs.on('save', (color) => {
+        if (color == null) return;
+        const hexaColor = color.toHEXA().toString();
+        if (hexaColor.slice(-2) == '00') {
+            $('#border-color').val('transparent');
+        } else {
+            $('#border-color').val(hexaColor);
+        }
+        $('#border-color').trigger('change');
+    });
+
+    borderColor_pickrjs.on('clear', () => {
+        borderColor_pickrjs.setColor('rgba(0, 0, 0, 0)');
+    });
+
+    // background-color
+    const backgroundColor_pickrjs = Pickr.create({
+        el: '.pickrjs[data-property="background-color"]',
+        theme: 'monolith',
+        default: '#000000',
+        defaultRepresentation: 'HEXA',
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: {
+                hex: true,
+                rgba: true,
+                input: true,
+                clear: true,
+                save: true,
+                copy: true
+            }
+        }
+    });
+
+    backgroundColor_pickrjs.on('init', (instance) => {
+        backgroundColor_pickrjs.setColor($('#background-color').val());
+        instance.setColor(instance.getColor().toHEXA().toString());
+    });
+
+
+    backgroundColor_pickrjs.on('save', (color) => {
+        if (color == null) return;
+        const hexaColor = color.toHEXA().toString();
+        if (hexaColor.slice(-2) == '00') {
+            $('#background-color').val('transparent');
+        } else {
+            $('#background-color').val(hexaColor);
+        }
+        $('#background-color').trigger('change');
+    });
+
+    backgroundColor_pickrjs.on('clear', () => {
+        backgroundColor_pickrjs.setColor('rgba(0, 0, 0, 0)');
+    });
+}

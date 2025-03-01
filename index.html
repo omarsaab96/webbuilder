@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Builder</title>
+
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+    <link rel="stylesheet" href="./builderStyles/bootstrap.min.css">
+    <link rel="stylesheet" href="./builderStyles/bootstrapIcons.min.css">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="./builderStyles/plugins.css">
+
+
+    <link rel="stylesheet" href="./builderStyles/webbuilder.css">
+</head>
+
+<body>
+    <div class="bodycontent container-fluid">
+        <div class="row">
+            <div class="components col-3 hideScrollbar">
+                <div class="componentsBox box flex-column justify-content-between show">
+                    <div id="sidebar">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h5>Components</h5>
+                            <a href="javascript:addNewcomponent();" class="btn btn-link newcomponentbtn">
+                            </a>
+                        </div>
+
+                        <div class="componentsList" id="components"></div>
+                    </div>
+
+                    <div>
+                        <a href="javascript:editStyles();" class="editStyles btn btn-primary" id="editStyles">Edit
+                            styles</a>
+                        <a href="javascript:buildWebsite();" class="downloadWebsite btn btn-primary"
+                            id="buildWebsite">Download Website</a>
+
+                    </div>
+                </div>
+
+                <div class="stylesBox box flex-column justify-content-between">
+                    <div id="sidebar">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h5>Edit styles</h5>
+                        </div>
+
+                        <div id="treeDisplay"></div>
+                        <div id="styleEditor"></div>
+                        <button id="exportButton">Export CSS</button>
+                    </div>
+
+                    <div>
+                        <a href="javascript:editStyles();" class="editStyles btn btn-primary" id="editStyles">Edit
+                            styles</a>
+                        <a href="javascript:buildWebsite();" class="downloadWebsite btn btn-primary"
+                            id="buildWebsite">Download Website</a>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="website col-9 ">
+                <div class="previewDiv box hideScrollbar">
+                    <div id="outputContainer">
+                    </div>
+                    <div class="text-xs text-muted italic p-4">
+                        //TODO<br>
+                        //<span class="text-green-500">[DONE]</span> expand/collapse styles<br>
+                        //<span class="text-green-500">[DONE]</span> add border-radius, positions, displays,
+                        background-image<br>
+                        //<span class="text-yellow-500">[PEND]</span> make the styles fields dynamic and conditional<br>
+                        //<span class="text-green-500">[DONE]</span> continue border-radius validation<br>
+                        //<span class="text-yellow-500">[PEND]</span> add more components<br>
+                        //<span class="text-yellow-500">[PEND]</span> background-position needs verification<br>
+                        //<span class="text-yellow-500">[PEND]</span> add states hover, focus<br>
+                        //<span class="text-yellow-500">[PEND]</span> add after, before<br>
+                        //<span class="text-yellow-500">[PEND]</span> add box-shadow<br>
+                        //<span class="text-yellow-500">[PEND]</span> add outline<br>
+                        //<span class="text-yellow-500">[PEND]</span> handle custom option in selectables<br>
+                        <span class="text-red-500"><b>//[HIGH] create git</b></span> <br>
+
+                    </div>
+
+                    <div class="changedStyles">
+
+                    </div>
+                    <!-- <input type="text" id="test" style="border:1px solid black;">
+                    <span id="res"></span> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="newComponentPopup popup">
+        <div class="content">
+            <div class="popuphead mb-5 d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Add a new component</h3>
+                <a href="javascript:closePopup();" class="close"></a>
+            </div>
+
+            <form class="needs-validation" novalidate id="newComponentForm">
+                <div class="row">
+                    <div class="col">
+                        <div class="mb-3">
+                            <label for="newComponentType" class="form-label">Type</label>
+                            <select class="form-select" name="newComponentType" id="newComponentType">
+                                <option selected disabled value="">Select Type</option>
+                                <!-- Options will be populated here dynamically -->
+                            </select>
+                            <input type="text" class="form-control d-none" id="customTypeInput"
+                                placeholder="Enter new type" />
+
+                            <!-- <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"> -->
+                            <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="mb-3">
+                            <label for="newComponentName" class="form-label">Component name</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="newComponentName">
+                                <span class="input-group-text">.html</span>
+                            </div>
+
+                            <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label for="newComponentStructure" class="form-label">HTML structure</label>
+                    <textarea class="form-control" id="newComponentStructure" aria-label="With textarea"></textarea>
+                    <!-- <input type="text" class="form-control" id="componentName"> -->
+                    <!-- <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div> -->
+                </div>
+
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="javascript:closePopup();" class="btn btn-light">
+                        Cancel
+                    </a>
+                    <a href="javascript:validateNewComponentForm();" class="btn btn-primary">
+                        Done
+                    </a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div class="toast success align-items-center" role="alert" aria-live="assertive" aria-atomic="true"
+            id="newComponentSuccess">
+            <div class="d-flex">
+                <div class="toast-body">
+                    New component added!
+                </div>
+                <a href="javascript:;" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></a>
+            </div>
+        </div>
+        <div class="toast success align-items-center" role="alert" aria-live="assertive" aria-atomic="true"
+            id="componentPlacedOnWebsite">
+            <div class="d-flex">
+                <div class="toast-body">
+                </div>
+                <a href="javascript:;" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div class="styleEditorPopup popup">
+        <div class="content">
+            <div class="popuphead mb-2 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Edit Component Styles</h5>
+                <a href="javascript:closeStyleEditor();" class="close"></a>
+            </div>
+
+            <form class="needs-validation" novalidate id="styleEditorForm">
+                <div class="mb-3">
+                    <label for="styleEditorColor" class="form-label">Color</label>
+                    <input type="color" class="form-control" id="styleEditorColor">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorFontSize" class="form-label">Font Size</label>
+                    <input type="number" class="form-control" id="styleEditorFontSize"
+                        placeholder="Enter font size in px">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorMargin" class="form-label">Margin</label>
+                    <input type="text" class="form-control" id="styleEditorMargin"
+                        placeholder="e.g., 10px 20px 10px 20px">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorPadding" class="form-label">Padding</label>
+                    <input type="text" class="form-control" id="styleEditorPadding"
+                        placeholder="e.g., 10px 20px 10px 20px">
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="javascript:closeStyleEditor();" class="btn btn-primary">
+                        Done
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div> -->
+
+    <div class="styleEditorPopup popup">
+        <div class="content hideScrollbar">
+            <div class="popuphead mb-2 d-flex justify-content-between align-items-center">
+                <h5>Edit styles</h5>
+            </div>
+
+            <ul id="elementListContainer">
+                <!-- will be automatically populated -->
+            </ul>
+
+            <form class="needs-validation" novalidate id="styleEditorForm">
+                <!-- <div class="mb-3">
+                    <label for="elementSelector" class="form-label">Select Element</label>
+                    <select class="form-select" id="elementSelector">
+                    </select>
+                </div> -->
+                <!-- <div class="mb-3">
+                    <label for="styleEditorColor" class="form-label">Color</label>
+                    <input type="color" class="form-control" id="styleEditorColor">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorBackgroundColor" class="form-label">Background color</label>
+                    <input type="color" class="form-control" id="styleEditorBackgroundColor">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorFontSize" class="form-label">Font Size</label>
+                    <input type="number" class="form-control" id="styleEditorFontSize"
+                        placeholder="Enter font size in px">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorMargin" class="form-label">Margin</label>
+                    <input type="text" class="form-control" id="styleEditorMargin"
+                        placeholder="e.g., 10px 20px 10px 20px">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorPadding" class="form-label">Padding</label>
+                    <input type="text" class="form-control" id="styleEditorPadding"
+                        placeholder="e.g., 10px 20px 10px 20px">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorPosition" class="form-label">Position</label>
+                    <input type="text" class="form-control" id="styleEditorPosition"
+                        placeholder="e.g., absolute, relative">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorBorder" class="form-label">Border</label>
+                    <input type="text" class="form-control" id="styleEditorBorder" placeholder="e.g., 1px solid #000">
+                </div>
+                <div class="mb-3">
+                    <label for="styleEditorDisplay" class="form-label">Display</label>
+                    <input type="text" class="form-control" id="styleEditorDisplay"
+                        placeholder="e.g., block, inline-block">
+                </div> -->
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="javascript:closeStyleEditor();" class="btn btn-primary">
+                        Done
+                    </a>
+                </div>
+            </form>
+
+            <p class="selectedItemCSSSelector" id="cssSelector">
+
+            </p>
+
+        </div>
+    </div>
+
+
+    <script src="./builderScripts/jquery-3.7.1.min.js"></script>
+    <script src="./builderScripts/bootstrap.min.js"></script>
+    <script src="./builderScripts/plugins.js"></script>
+    <script src="./builderScripts/functions.js"></script>
+
+    <!-- <script src="./builderScripts/inspector.js"></script>
+    
+    <script>
+        const inspector = Inspector({
+            root: '#outputContainer',
+            excluded: [],
+        });
+    </script> -->
+
+</body>
+
+</html>

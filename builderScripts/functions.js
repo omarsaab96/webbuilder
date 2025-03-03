@@ -605,6 +605,16 @@ function inputChangeDetected(field, selector, property, value) {
         borderColor_pickrjs.setColor(value);
     }
 
+    if (field == "outline-color") {
+        if (value.includes('rgb')) {
+            outlineColor_pickrjs.setColorRepresentation("RGBA")
+        } else {
+            outlineColor_pickrjs.setColorRepresentation("HEXA")
+        }
+
+        outlineColor_pickrjs.setColor(value);
+    }
+
     if (field == "background-color") {
         if (value.includes('rgb')) {
             backgroundColor_pickrjs.setColorRepresentation("RGBA")
@@ -615,45 +625,123 @@ function inputChangeDetected(field, selector, property, value) {
         backgroundColor_pickrjs.setColor(value)
     }
 
-    if (field == "border") {
+    if (field == "border" || field == "outline") {
         if (isValidBorderShortHand(value)) {
-            console.log('yes')
 
             let subProperties = splitBorderShorthand(value)
 
-            $('#border').val(subProperties[0] + " " + subProperties[1] + " " + subProperties[2]);
-            $('#border-width').val(subProperties[0]);
-            $('#border-style').val(subProperties[1]);
-            $('#border-color').val(subProperties[2]);
-            borderColor_pickrjs.setColor(subProperties[2], true);
-            borderColor_pickrjs.applyColor();
+            console.log(subProperties)
+
+            if (subProperties.length == 1 && subProperties[0] == "none") {
+                $('#' + field + '-width').val('0px');
+                $('#' + field + '-style').val('none');
+            } else {
+                $('#' + field).val(subProperties[0] + " " + subProperties[1] + " " + subProperties[2]);
+                $('#' + field + '-width').val(subProperties[0]);
+                $('#' + field + '-style').val(subProperties[1]);
+                $('#' + field + '-color').val(subProperties[2]);
+                if (field == "border") {
+                    borderColor_pickrjs.setColor(subProperties[2], true);
+                    borderColor_pickrjs.applyColor();
+                }
+                if (field == "outline") {
+                    outlineColor_pickrjs.setColor(subProperties[2], true);
+                    outlineColor_pickrjs.applyColor();
+                }
+            }
+
+
+
         } else {
-            console.log('no')
-            $('#border').addClass('error')
-            $('#border-width').val('');
-            $('#border-style').val('');
-            $('#border-color').val('');
-            borderColor_pickrjs.setColor('transparent', true);
-            borderColor_pickrjs.applyColor();
+            $('#' + field).addClass('error')
+            $('#' + field + '-width').val('');
+            $('#' + field + '-style').val('');
+            $('#' + field + '-color').val('');
+            if (field == "border") {
+                borderColor_pickrjs.setColor('transparent', true);
+                borderColor_pickrjs.applyColor();
+            }
+            if (field == "outline") {
+                outlineColor_pickrjs.setColor('transparent', true);
+                outlineColor_pickrjs.applyColor();
+            }
+
         }
     }
 
-    if (field == "border-width") {
+    if (field == "border-width" || field == "outline-width") {
         if (isValidPaddingOrMargin(value)) {
-            $('#border-width').val(ifJustNumberAddPxUnit(value))
-            $('#border').val(ifJustNumberAddPxUnit($('#border-width').val()) + " " + $('#border-style').val() + " " + $('#border-color').val());
+            $('#' + field).val(ifJustNumberAddPxUnit(value))
+
+            if (field == "border-width") {
+                if ($('#' + field).val() == "0px") {
+                    $('#border').val('none');
+                } else {
+                    if ($('#border-style').val() == "none") {
+                        $('#border').val('none');
+                    } else {
+                        $('#border').val(ifJustNumberAddPxUnit($('#border-width').val()) + " " + $('#border-style').val() + " " + $('#border-color').val());
+                    }
+                }
+            }
+
+            if (field == "outline-width") {
+                if ($('#' + field).val() == "0px") {
+                    $('#outline').val('none');
+                } else {
+                    if ($('#outline-style').val() == "none") {
+                        $('#outline').val('none');
+                    } else {
+                        $('#outline').val(ifJustNumberAddPxUnit($('#outline-width').val()) + " " + $('#outline-style').val() + " " + $('#outline-color').val());
+                    }
+                }
+            }
         } else {
-            $('#border').val('');
-            $('#border-width').addClass('error')
+            if (field == "border-width") {
+                $('#border').val('');
+                $('#border-width').addClass('error')
+            }
+            if (field == "outline-width") {
+                $('#outline').val('');
+                $('#outline-width').addClass('error')
+            }
         }
     }
 
-    if (field == "border-style") {
+    if (field == "border-style" || field == "outline-style") {
         if (isValidBorderStyle(value)) {
-            $('#border').val($('#border-width').val() + " " + $('#border-style').val() + " " + $('#border-color').val());
+            if (field == "border-style") {
+                if (value == 'none') {
+                    $('#border').val('none');
+                } else {
+                    if ($('#border-width').val() == "0px") {
+                        $('#border').val('none');
+                    } else {
+                        $('#border').val($('#border-width').val() + " " + $('#border-style').val() + " " + $('#border-color').val());
+                    }
+                }
+            }
+            if (field == "outline-style") {
+                if (value == 'none') {
+                    $('#outline').val('none');
+                } else {
+                    if ($('#outline-width').val() == "0px") {
+                        $('#outline').val('none');
+                    } else {
+                        $('#outline').val($('#outline-width').val() + " " + $('#outline-style').val() + " " + $('#outline-color').val());
+                    }
+                }
+            }
         } else {
-            $('#border').val('');
-            $('#border-style').addClass('error')
+
+            if (field == "border-style") {
+                $('#border').val('');
+                $('#border-style').addClass('error')
+            }
+            if (field == "outline-style") {
+                $('#outline').val('');
+                $('#outline-style').addClass('error')
+            }
         }
     }
 
@@ -898,17 +986,57 @@ function inputChangeDetected(field, selector, property, value) {
 
     }
 
-    if (field == "background-size") {
+    if (field == "background-size" || field == "background-position") {
         setTimeout(function () {
-            console.log($('#background-size').val())
+            console.log($('#' + field).val())
         }, 500);
     }
 
-    if (field == "background-position") {
+    if (field == "background-repeat" || field == "position" || field == "display" || field == "flex-direction" || field == "align-items" || field == "justify-content" || field == "overflow" || field == "visibility") {
         setTimeout(function () {
-            console.log($('#background-position').val())
+            console.log($('#' + field).val())
         }, 500);
     }
+
+    if (field == "font-size" || field == "line-height" || field == "width" || field == "height" || field == "min-width" || field == "min-height" || field == "max-width" || field == "max-height" || field == "top" || field == "right" || field == "bottom" || field == "left") {
+        value = ifJustNumberAddPxUnit(value)
+        $('#' + field).val(value)
+
+        if (!isValidDimension(value)) {
+            $('#' + field).addClass('error')
+        }
+    }
+}
+
+function isValidDimension(value) {
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    // Allow "auto" as a valid dimension
+    if (value === "auto" || value === "none") {
+        return true;
+    }
+
+    // Regular expression to match valid CSS units
+    const validUnits = ["px", "%", "em", "rem", "vw", "vh", "vmin", "vmax"];
+    const unitPattern = new RegExp(`^-?\\d*\\.?\\d+(${validUnits.join("|")})$`);
+
+    // Check for simple numeric values with units
+    if (unitPattern.test(value.trim())) {
+        return true;
+    }
+
+    // Check for calc() expressions
+    if (value.includes('calc(')) {
+        if (isValidCalc(value)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    return false;
 }
 
 function splitBackgroundPositionShorthand(value) {
@@ -1145,7 +1273,7 @@ function isValidBackgroundPositionValue(value) {
 }
 
 function ifJustNumberAddPxUnit(value) {
-    const whitelist = ["calc", "px", "em", "rem", "%", "vw", "vh", "deg", "auto", "contain", "cover","top","right","bottom","left"]; // Extend if needed
+    const whitelist = ["calc", "px", "em", "rem", "%", "vw", "vh", "deg", "auto", "contain", "cover", "top", "right", "bottom", "left", "none"]; // Extend if needed
 
     if (whitelist.some(char => value.includes(char))) {
         return value;
@@ -1238,6 +1366,8 @@ function isValidBorderShortHand(value) {
 
     //check if the value is empty
     if (value === "") return false;
+
+    if (value === "none") return true;
 
     let values = [];
     let currentValue = "";
@@ -1377,59 +1507,40 @@ function isValidPaddingOrMargin(value) {
 }
 
 function isValidCalc(value) {
-    // Check if the value is a string
     if (typeof value !== "string") return false;
 
-    // Step 1: Check if it starts with "calc(" and ends with ")"
-    if (value.startsWith("calc(")) {
-        if (!value.endsWith(")")) return false; // Ensure calc() ends properly
-
-        // Remove the calc() part and trim spaces
+    if (value.startsWith("calc(") && value.endsWith(")")) {
         const calcInner = value.slice(5, -1).trim();
 
-        // Step 2: Validate that calc() contains valid operations (spaces around operators, numbers or valid units)
-        const operators = ["+", "-", "*", "/"];
-        let hasValidSpacing = true;
-        let prevChar = null;
+        // Ensure operators have spaces around them
+        if (!/^([\w\d%]+(\s[\+\-\*\/]\s[\w\d%]+)+)$/.test(calcInner)) return false;
 
-        // Check for spacing around operators inside calc()
-        for (let i = 0; i < calcInner.length; i++) {
-            const currentChar = calcInner[i];
+        const validUnits = ["px", "em", "rem", "%", "vw", "vh", "deg"];
+        const tokens = calcInner.split(/\s([\+\-\*\/])\s/); // Split operands and keep operators
 
-            if (operators.includes(currentChar)) {
-                if (prevChar && prevChar !== " ") hasValidSpacing = false; // No space before operator
-                if (i + 1 < calcInner.length && calcInner[i + 1] !== " ") hasValidSpacing = false; // No space after operator
-            }
+        for (let i = 0; i < tokens.length; i++) {
+            let token = tokens[i].trim();
 
-            prevChar = currentChar;
-        }
+            // Operators are valid, so skip them
+            if (["+", "-", "*", "/"].includes(token)) continue;
 
-        if (!hasValidSpacing) return false;
+            let hasUnit = validUnits.some(unit => token.endsWith(unit));
+            let isNumber = !isNaN(token);
 
-        // Step 3: Split the expression by operators and validate operands
-        let splitOperands = calcInner.split(/[\+\-\*\/]/).map(op => op.trim());
+            if (i > 0) {
+                let prevOperator = tokens[i - 1];
 
-        // Check each operand
-        const validUnits = ["px", "em", "rem", "%", "vw", "vh", "deg"]; // Extend if needed
-        for (let operand of splitOperands) {
-            let isValidOperand = false;
-
-            // If the operand is a number
-            if (!isNaN(operand)) {
-                isValidOperand = true; // Numbers are allowed
-            }
-
-            // If the operand has a valid unit
-            for (let unit of validUnits) {
-                if (operand.endsWith(unit)) {
-                    isValidOperand = true;
-                    break;
-                } else {
-                    isValidOperand = false;
+                if (["*", "/"].includes(prevOperator)) {
+                    // For multiplication & division, the second operand must be unitless
+                    if (hasUnit) return false;
+                } else if (["+", "-"].includes(prevOperator)) {
+                    // For addition & subtraction, both operands must have units
+                    if (!hasUnit) return false;
                 }
+            } else {
+                // The first operand must have a unit
+                if (!hasUnit) return false;
             }
-
-            if (!isValidOperand) return false; // Invalid operand (missing unit or invalid value)
         }
 
         return true;
@@ -1463,12 +1574,15 @@ function isValidBorderStyle(value) {
 
 const compositeProperties = {
     'layout': ['position', 'display', 'flex-direction', 'align-items', 'justify-content', 'top', 'right', 'bottom', 'left', 'transform', 'z-index', 'overflow', 'visibility'],
-    'text': ['color', 'font-family', 'font-size','line-height'],
+    'dimensions': ['width', 'height', 'min-width', 'min-height', 'max-width', 'max-height'],
+    'text': ['color', 'font-family', 'font-size', 'line-height'],
     'border': ['border-width', 'border-style', 'border-color'],
+    'outline': ['outline-width', 'outline-style', 'outline-color'],
     'border-radius': ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'],
     'padding': ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'],
     'margin': ['margin-top', 'margin-right', 'margin-bottom', 'margin-left'],
-    'background': ['background-color', 'background-image', 'background-repeat', 'background-size', 'background-position']
+    'background': ['background-color', 'background-image', 'background-repeat', 'background-size', 'background-position'],
+    'shadow': ['box-shadow']
 };
 
 function formatStylesForDisplay(styles) {
@@ -1513,7 +1627,7 @@ function formatStylesForDisplay(styles) {
 
             if (mainStyle) {
                 html += createInputRow(mainStyle, true);
-            } else if (mainProperty == "layout" || mainProperty == "text") {
+            } else if (mainProperty == "layout" || mainProperty == "dimensions" || mainProperty == "text" || mainProperty == "shadow") {
                 html += `<div class="style-row composite">
                             <span class="style-property">${mainProperty}</span>
                         </div>`;
@@ -1707,6 +1821,12 @@ function getStyles(element) {
         'z-index',
         'overflow',
         'visibility',
+        'width',
+        'height',
+        'min-width',
+        'min-height',
+        'max-width',
+        'max-height',
         'color',
         'font-family',
         'font-size',
@@ -1725,6 +1845,10 @@ function getStyles(element) {
         'border-width',
         'border-style',
         'border-color',
+        'outline',
+        'outline-width',
+        'outline-style',
+        'outline-color',
         'border-radius',
         'border-top-left-radius',
         'border-top-right-radius',
@@ -1735,7 +1859,8 @@ function getStyles(element) {
         'background-image',
         'background-repeat',
         'background-size',
-        'background-position'
+        'background-position',
+        'box-shadow'
     ];
 
     propertiesToGet.forEach(prop => {
@@ -1752,6 +1877,12 @@ function createInputRow(style, isComposite) {
     let inputType = 'text';
     let inputValue = style.value;
     let additionalElement = '';
+
+    if (style.property == "border" || style.property == "outline") {
+        if (style.value.split(" ")[0] == '0px' || style.value.split(" ")[1] == 'none') {
+            inputValue = "none";
+        }
+    }
 
     if (style.property == "position") {
         return `<div class="style-row sub-property row_${style.property}">
@@ -1877,7 +2008,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="no-repeat" id="background-repeat">
+                <input type="text" data-selectable-selected="1" value="no-repeat" class="style-value-input"  id="background-repeat">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">no-repeat</li>
@@ -1906,7 +2037,6 @@ function createInputRow(style, isComposite) {
             </div>
         </div>`
     }
-
 
     if (style.property == "background-position") {
         return `<div class="style-row sub-property row_${style.property}">
@@ -2110,11 +2240,79 @@ function pickerjs() {
             }
         }
 
-        $('#border').val($('#border-width').val() + " " + $('#border-style').val() + " " + $('#border-color').val());
+        if($('#border-width').val()=="0px" || $('#border-style').val()=="none"){
+            $('#border').val('none');
+        }else{
+            $('#border').val($('#border-width').val() + " " + $('#border-style').val() + " " + $('#border-color').val());
+        }
     });
 
     borderColor_pickrjs.on('clear', () => {
         borderColor_pickrjs.setColor('rgba(0, 0, 0, 0)');
+    });
+
+    // outline-color
+    outlineColor_pickrjs = Pickr.create({
+        el: '.pickrjs[data-property="outline-color"]',
+        theme: 'monolith',
+        default: '#000000',
+        defaultRepresentation: 'HEXA',
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: {
+                hex: true,
+                rgba: true,
+                input: true,
+                clear: true,
+                save: true,
+                copy: true
+            }
+        }
+    });
+
+    outlineColor_pickrjs.on('init', (instance) => {
+        if ($('#outline-color').val() == "transparent") {
+            instance.setColor("transparent", true);
+        } else {
+            instance.setColor(instance.getColor().toHEXA().toString(), true);
+            instance.setColor(rgbaToHex($('#outline-color').val()), true);
+            $('#outline-color').val(instance._eventBindings[4][0].value)
+        }
+        instance.applyColor();
+    });
+
+    outlineColor_pickrjs.on('save', (color) => {
+        if (color == null) return;
+
+        if (outlineColor_pickrjs.getColorRepresentation() == "HEXA") {
+            let selectedColor = outlineColor_pickrjs.getSelectedColor().toHEXA().toString();
+            if (selectedColor.length == 9 && selectedColor.slice(-2) == "00") {
+                $('#outline-color').val('transparent')
+            } else {
+                $('#outline-color').val(selectedColor)
+            }
+        }
+
+        if (outlineColor_pickrjs.getColorRepresentation() == "RGBA") {
+            let selectedColor = outlineColor_pickrjs.getSelectedColor().toRGBA().toString(0);
+            if (selectedColor.split(" ")[3].replace(")", "") == "0") {
+                $('#outline-color').val('transparent')
+            } else {
+                $('#outline-color').val(selectedColor)
+            }
+        }
+
+        if($('#outline-width').val()=="0px" || $('#outline-style').val()=="none"){
+            $('#outline').val('none');
+        }else{
+            $('#outline').val($('#outline-width').val() + " " + $('#outline-style').val() + " " + $('#outline-color').val());
+        }
+    });
+
+    outlineColor_pickrjs.on('clear', () => {
+        outlineColor_pickrjs.setColor('rgba(0, 0, 0, 0)');
     });
 
     // background-color

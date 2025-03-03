@@ -605,6 +605,10 @@ a {
                         }
                     }
 
+                    .custom-style-value-input.error {
+                        border-color: red;
+                    }
+
                     .unit {
                         color: #666;
                     }
@@ -729,23 +733,63 @@ a {
 .selectable {
     position: relative;
     box-sizing: border-box;
-    display:none;
+    display: none;
 
-    &.initialized{
-        display:block;
+    &.initialized {
+        display: block;
     }
 
     input {
         width: 100%;
-        border:1px solid #ddd;
+        border: 1px solid #ddd;
         border-radius: 3px;
-        outline:none;
-        padding:2px 5px;
-        font-size:12px;
+        outline: none;
+        padding: 2px 5px;
+        font-size: 12px;
+    }
+
+    >input {
         background-image: url(../builderImages/downarrow.svg);
         background-position: calc(100% - 5px) center;
         background-size: 10px;
         background-repeat: no-repeat;
+    }
+
+    .customOption {
+        position: relative;
+
+        .back {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            transform:translateY(-50%);
+            font-size:0;
+            background-image: url(../builderImages/close.svg);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 12px;
+        }
+
+        .enter {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            transform:translateY(-50%);
+            font-size:0;
+            background-image: url(../builderImages/check-black.svg);
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 12px;
+        }
+
+        input{
+            padding-left:20px;
+            padding-right:20px;
+        }
     }
 
     .selectables {
@@ -757,7 +801,7 @@ a {
         overflow: hidden;
         border-radius: 10px;
         box-shadow: 0 0 15px 2px rgba(145, 145, 145, 0.6);
-        display:none;
+        display: none;
 
         .options {
             width: 100%;
@@ -767,21 +811,21 @@ a {
             max-height: 125px;
             overflow: auto;
             border-radius: 10px;
-    
+
             &::-webkit-scrollbar-track {
                 border-radius: 10px;
                 background-color: transparent;
             }
-    
+
             &::-webkit-scrollbar {
                 width: 3px;
             }
-    
+
             &::-webkit-scrollbar-thumb {
                 border-radius: 10px;
                 background-color: rgba(179, 174, 174, 0.8);
             }
-    
+
             .option {
                 padding: 5px;
                 transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
@@ -792,26 +836,26 @@ a {
                 overflow: hidden;
                 padding: 3px 20px 3px 5px;
                 font-size: 12px;
-    
+
                 &:hover {
                     background-color: dodgerblue;
                     color: white;
                 }
-    
+
                 &.selected {
                     background-color: #cccccc;
                     background-image: url(../builderImages/check-black.svg);
                     background-position: calc(100% - 5px) center;
                     background-size: 10px;
                     background-repeat: no-repeat;
-    
+
                     &:hover {
                         background-color: dodgerblue;
                         color: white;
                         background-image: url(../builderImages/check-white.svg);
                     }
                 }
-    
+
                 &.disabled {
                     pointer-events: none;
                     opacity: 0.4;

@@ -501,6 +501,9 @@ a {
 .styleEditorPopup .content .styles-container .style-group .style-row .style-value-input.error {
   border-color: red;
 }
+.styleEditorPopup .content .styles-container .style-group .style-row .custom-style-value-input.error {
+  border-color: red;
+}
 .styleEditorPopup .content .styles-container .style-group .style-row .unit {
   color: #666;
 }
@@ -612,10 +615,45 @@ a {
   outline: none;
   padding: 2px 5px;
   font-size: 12px;
+}
+.selectable > input {
   background-image: url(../builderImages/downarrow.svg);
   background-position: calc(100% - 5px) center;
   background-size: 10px;
   background-repeat: no-repeat;
+}
+.selectable .customOption {
+  position: relative;
+}
+.selectable .customOption .back {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  font-size: 0;
+  background-image: url(../builderImages/close.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 12px;
+}
+.selectable .customOption .enter {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  font-size: 0;
+  background-image: url(../builderImages/check-black.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 12px;
+}
+.selectable .customOption input {
+  padding-left: 20px;
+  padding-right: 20px;
 }
 .selectable .selectables {
   position: absolute;

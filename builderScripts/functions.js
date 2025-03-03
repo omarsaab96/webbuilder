@@ -897,10 +897,255 @@ function inputChangeDetected(field, selector, property, value) {
 
 
     }
+
+    if (field == "background-size") {
+        setTimeout(function () {
+            console.log($('#background-size').val())
+        }, 500);
+    }
+
+    if (field == "background-position") {
+        setTimeout(function () {
+            console.log($('#background-position').val())
+        }, 500);
+    }
+}
+
+function splitBackgroundPositionShorthand(value) {
+    value = value.trim();
+    value = value.replace(/\s{2,}/g, ' ');
+
+    let values = [];
+    let currentValue = "";
+    let isCalc = false;
+
+    for (let i = 0; i < value.length; i++) {
+        let currentChar = value[i];
+        if (currentChar === " " && !isCalc) {
+            if (currentValue !== "") {
+                values.push(currentValue);
+                currentValue = "";
+            }
+        } else if (currentChar === "c" && value.slice(i, i + 5) === "calc(") {
+            isCalc = true;
+            currentValue += "calc(";
+            i += 4;
+        } else if (currentChar === ")") {
+            isCalc = false;
+            currentValue += ")";
+        } else {
+            currentValue += currentChar;
+        }
+    }
+
+    values.push(currentValue);
+
+    return values;
+}
+
+function isValidBackgroundPositionShortHand(value) {
+    // Valid shorthand values must be strings
+    if (typeof value !== "string") return false;
+
+    //trim excess spaces before and after
+    value = value.trim();
+
+    //replace double spaces with one space anywhere in the string
+    value = value.replace(/\s{2,}/g, ' ');
+
+    //check if the value is empty
+    if (value === "") return false;
+
+    let values = [];
+    let currentValue = "";
+    let isCalc = false;
+
+    for (let i = 0; i < value.length; i++) {
+        let currentChar = value[i];
+        if (currentChar === " " && !isCalc) {
+            if (currentValue !== "") {
+                values.push(currentValue);
+                currentValue = "";
+            }
+        } else if (currentChar === "c" && value.slice(i, i + 5) === "calc(") {
+            isCalc = true;
+            currentValue += "calc(";
+            i += 4;
+        } else if (currentChar === ")") {
+            isCalc = false;
+            currentValue += ")";
+        } else {
+            currentValue += currentChar;
+        }
+    }
+    values.push(currentValue);
+
+    if (values.length < 1 || values.length > 2) return false;
+
+
+    //loop check values
+    for (let val of values) {
+        if (val.includes('calc')) {
+            if (!isValidCalc(val)) return false;
+        } else {
+            if (!isValidBackgroundPositionValue(val)) return false;
+        }
+    }
+
+    return true;
+}
+
+function splitBackgroundSizeShorthand(value) {
+    value = value.trim();
+    value = value.replace(/\s{2,}/g, ' ');
+
+    let values = [];
+    let currentValue = "";
+    let isCalc = false;
+
+    for (let i = 0; i < value.length; i++) {
+        let currentChar = value[i];
+        if (currentChar === " " && !isCalc) {
+            if (currentValue !== "") {
+                values.push(currentValue);
+                currentValue = "";
+            }
+        } else if (currentChar === "c" && value.slice(i, i + 5) === "calc(") {
+            isCalc = true;
+            currentValue += "calc(";
+            i += 4;
+        } else if (currentChar === ")") {
+            isCalc = false;
+            currentValue += ")";
+        } else {
+            currentValue += currentChar;
+        }
+    }
+
+    values.push(currentValue);
+
+    return values;
+}
+
+function isValidBackgroundSizeShortHand(value) {
+    // Valid shorthand values must be strings
+    if (typeof value !== "string") return false;
+
+    //trim excess spaces before and after
+    value = value.trim();
+
+    //replace double spaces with one space anywhere in the string
+    value = value.replace(/\s{2,}/g, ' ');
+
+    //check if the value is empty
+    if (value === "") return false;
+
+    let values = [];
+    let currentValue = "";
+    let isCalc = false;
+
+    for (let i = 0; i < value.length; i++) {
+        let currentChar = value[i];
+        if (currentChar === " " && !isCalc) {
+            if (currentValue !== "") {
+                values.push(currentValue);
+                currentValue = "";
+            }
+        } else if (currentChar === "c" && value.slice(i, i + 5) === "calc(") {
+            isCalc = true;
+            currentValue += "calc(";
+            i += 4;
+        } else if (currentChar === ")") {
+            isCalc = false;
+            currentValue += ")";
+        } else {
+            currentValue += currentChar;
+        }
+    }
+    values.push(currentValue);
+
+    if (values.length < 1 || values.length > 2) return false;
+
+
+    //loop check values
+    for (let val of values) {
+        if (val.includes('calc')) {
+            if (!isValidCalc(val)) return false;
+        } else {
+            if (!isValidBackgroundValue(val)) return false;
+        }
+    }
+
+    return true;
+
+
+}
+
+function isValidBackgroundSize(value) {
+    const keywords = ["auto", "cover", "contain", "custom..."];
+    const unitPattern = /^(auto|cover|contain|(\d+(\.\d+)?(px|em|rem|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc|fr|calc\(.+\)))|(\d+(\.\d+)?(px|em|rem|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc|fr|calc\(.+\)) \d+(\.\d+)?(px|em|rem|%|vw|vh|vmin|vmax|ch|ex|cm|mm|in|pt|pc|fr|calc\(.+\))))$/;
+
+    return keywords.includes(value) || unitPattern.test(value.trim());
+}
+
+function isValidBackgroundValue(value) {
+    const validUnits = ["px", "em", "rem", "%", "vw", "vh", "deg"];
+    const validKeywords = ["auto", "contain", "cover"];
+
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    value = value.trim();
+
+    // Check if the value is one of the valid keywords
+    if (validKeywords.includes(value)) {
+        return true;
+    }
+
+    // Check if the value is a number (can have decimals) followed by a valid unit
+    if (validUnits.some(unit => value.endsWith(unit) && /^-?\d*\.?\d+$/.test(value.slice(0, -unit.length).trim()))) {
+        return true;
+    }
+
+    // Check if the value is a plain number (without units)
+    if (/^-?\d*\.?\d+$/.test(value)) {
+        return true;
+    }
+
+    return false;
+}
+
+function isValidBackgroundPositionValue(value) {
+    const validUnits = ["px", "em", "rem", "%", "vw", "vh", "deg"];
+    const validKeywords = ["auto", "top", "right", "bottom", "left"];
+
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    value = value.trim();
+
+    // Check if the value is one of the valid keywords
+    if (validKeywords.includes(value)) {
+        return true;
+    }
+
+    // Check if the value is a number (can have decimals) followed by a valid unit
+    if (validUnits.some(unit => value.endsWith(unit) && /^-?\d*\.?\d+$/.test(value.slice(0, -unit.length).trim()))) {
+        return true;
+    }
+
+    // Check if the value is a plain number (without units)
+    if (/^-?\d*\.?\d+$/.test(value)) {
+        return true;
+    }
+
+    return false;
 }
 
 function ifJustNumberAddPxUnit(value) {
-    const whitelist = ["calc", "px", "em", "rem", "%", "vw", "vh", "deg"]; // Extend if needed
+    const whitelist = ["calc", "px", "em", "rem", "%", "vw", "vh", "deg", "auto", "contain", "cover","top","right","bottom","left"]; // Extend if needed
 
     if (whitelist.some(char => value.includes(char))) {
         return value;
@@ -1218,7 +1463,7 @@ function isValidBorderStyle(value) {
 
 const compositeProperties = {
     'layout': ['position', 'display', 'flex-direction', 'align-items', 'justify-content', 'top', 'right', 'bottom', 'left', 'transform', 'z-index', 'overflow', 'visibility'],
-    'text': ['color', 'font-family', 'font-size'],
+    'text': ['color', 'font-family', 'font-size','line-height'],
     'border': ['border-width', 'border-style', 'border-color'],
     'border-radius': ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'],
     'padding': ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'],
@@ -1465,6 +1710,7 @@ function getStyles(element) {
         'color',
         'font-family',
         'font-size',
+        'line-height',
         'padding',
         'padding-top',
         'padding-right',
@@ -1511,7 +1757,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="relative" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="relative" class="style-value-input" id="position">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">relative</li>
@@ -1528,7 +1774,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="block" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="block" class="style-value-input" id="display">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">block</li>
@@ -1546,7 +1792,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="row" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="row" class="style-value-input" id="flex-direction">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">row</li>
@@ -1563,7 +1809,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="flex-start" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="flex-start" class="style-value-input" id="align-items">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">flex-start</li>
@@ -1581,7 +1827,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="flex-start" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="flex-start" class="style-value-input" id="justify-content">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">flex-start</li>
@@ -1600,7 +1846,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="visible" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="visible" class="style-value-input" id="overflow">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">visible</li>
@@ -1616,7 +1862,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="visible" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="visible" class="style-value-input" id="visibility">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">visible</li>
@@ -1631,7 +1877,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="no-repeat" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="no-repeat" id="background-repeat">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">no-repeat</li>
@@ -1648,7 +1894,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="auto" class="style-value-input">
+                <input type="text" data-selectable-selected="1" value="auto" class="style-value-input" id="background-size">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">auto</li>
@@ -1666,7 +1912,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="8" value="center" class="style-value-input">
+                <input type="text" data-selectable-selected="8" value="center" class="style-value-input" id="background-position">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">top left</li>
@@ -1936,6 +2182,7 @@ function selectableInit() {
         if (!$(this).hasClass('initialized')) {
 
             $(this).find('input[type="text"]').on('click', function () {
+                $(this).removeClass('error');
                 let selectedValue = $(this).data('selectable-selected');
                 var parent = $(this).parent();
                 var container = $(this).parent().find('.selectables');
@@ -1951,7 +2198,7 @@ function selectableInit() {
                         if (!container.is(e.target) && container.has(e.target).length === 0) {
                             parent.removeClass('open');
                             container.fadeOut(0.3);
-                            
+
                             // Remove the event listener after it is triggered
                             $(document).off('mouseup', documentMouseUpHandler);
                         }
@@ -1986,10 +2233,10 @@ function selectableInit() {
 
             });
 
-            $(document).on('click', '.option', function () {
+            $(document).off('click', '.option').on('click', '.option', function () {
                 let clickedOptionValue = $(this).data('selectable-value');
 
-                let inputElement = $(this).closest('.selectable').find('input[type="text"]');
+                let inputElement = $(this).closest('.selectable').find('>input[type="text"]');
 
                 inputElement.data('selectable-selected', clickedOptionValue);
                 inputElement.attr('data-selectable-selected', clickedOptionValue);
@@ -1997,9 +2244,116 @@ function selectableInit() {
 
                 $(this).closest('.selectable').find('.selectables .options .option').removeClass('selected');
                 $(this).addClass('selected');
-
                 $(this).closest('.selectable').removeClass('open')
                 $(this).closest('.selectable').find('.selectables').fadeOut(0.3);
+
+                if (clickedOptionValue == "custom") {
+                    if ($(this).closest('.selectable').find('.customOption').length == 0) {
+                        $(this).closest('.selectable').prepend(`<div class='customOption'>
+                            <a class="back">back</a>
+                            <input type="text" class="custom-style-value-input" id="${inputElement.attr('id') + '_custom'}" data-property="${inputElement.attr('id') + '_custom'}"/>
+                            <a class="enter">enter</a>
+                        </div>`)
+
+                        $('#' + inputElement.attr('id')).hide();
+
+
+                        $('#' + inputElement.attr('id') + '_custom').focus();
+                    } else {
+                        $('#' + inputElement.attr('id')).hide();
+
+                        $(this).closest('.selectable').find('.customOption').show();
+                        $('#' + inputElement.attr('id') + '_custom').focus();
+                    }
+                }
+            });
+
+            $(document).on('click', '.customOption .back', function () {
+                $(this).closest('.selectable').find('.customOption').hide();
+                $(this).closest('.selectable').find('input').show();
+                $(this).closest('.selectable').find('.selectables .options .option:first-child()').trigger('click')
+            });
+
+            $(document).off('blur', '.custom-style-value-input').on('blur', '.custom-style-value-input', function (e) {
+                if ($(this).attr('id') == 'background-size_custom') {
+                    if (isValidBackgroundSizeShortHand($(this).val())) {
+                        $(this).removeClass('error');
+                        let subProperties = splitBackgroundSizeShorthand($(this).val());
+
+                        let x = y = 0;
+
+                        switch (subProperties.length) {
+                            case 1:
+                                x = y = ifJustNumberAddPxUnit(subProperties[0]);
+                                break;
+                            case 2:
+                                x = ifJustNumberAddPxUnit(subProperties[0]);
+                                y = ifJustNumberAddPxUnit(subProperties[1]);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (x == y) {
+                            $(this).val(x)
+                        } else {
+                            $(this).val(x + " " + y)
+                        }
+
+                        $(this).parent().parent().find('input').val($(this).val())
+
+                        let field = property = $(this).parent().parent().find('>input').attr('id')
+                        let selector = $(this).closest('.selectedItemCSSSelector').find('>.text-muted').text();
+                        let value = $(this).val();
+
+                        inputChangeDetected(field, selector, property, value)
+
+                    } else {
+                        $(this).addClass('error');
+                    }
+                }
+
+                if ($(this).attr('id') == 'background-position_custom') {
+                    if (isValidBackgroundPositionShortHand($(this).val())) {
+                        $(this).removeClass('error');
+                        let subProperties = splitBackgroundPositionShorthand($(this).val());
+
+                        let x = y = 0;
+
+                        switch (subProperties.length) {
+                            case 1:
+                                x = y = ifJustNumberAddPxUnit(subProperties[0]);
+                                break;
+                            case 2:
+                                x = ifJustNumberAddPxUnit(subProperties[0]);
+                                y = ifJustNumberAddPxUnit(subProperties[1]);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (x == y) {
+                            $(this).val(x)
+                        } else {
+                            $(this).val(x + " " + y)
+                        }
+
+                        $(this).parent().parent().find('input').val($(this).val())
+
+                        let field = property = $(this).parent().parent().find('>input').attr('id')
+                        let selector = $(this).closest('.selectedItemCSSSelector').find('>.text-muted').text();
+                        let value = $(this).val();
+
+                        inputChangeDetected(field, selector, property, value)
+
+                    } else {
+                        $(this).addClass('error');
+                    }
+                }
+            });
+
+            $(document).on('input', '.custom-style-value-input', function (e) {
+                $(this).removeClass('error');
             });
 
             $(this).addClass('initialized')

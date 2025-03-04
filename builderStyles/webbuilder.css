@@ -718,4 +718,56 @@ a {
   opacity: 0.4;
 }
 
+.shadowGenerator {
+  font-size: 12px;
+}
+.shadowGenerator .preview-box {
+  width: 30px;
+  height: 30px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+.shadowGenerator .controls {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.shadowGenerator .xy-offset-container {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  position: relative;
+  border: 1px solid #ccc;
+  background: #eee;
+  margin-right: 10px;
+}
+.shadowGenerator .xy-offset-handle {
+  width: 10px;
+  height: 10px;
+  border: 2px solid red;
+  border-radius: 50%;
+  position: absolute;
+  cursor: grab;
+  transform: translate(-50%, -50%);
+}
+.shadowGenerator .values-container {
+  flex: 0 0 calc(100% - 65px);
+}
+.shadowGenerator label {
+  display: flex;
+  justify-content: space-between;
+}
+.shadowGenerator input {
+  width: 50px;
+  border: 1px solid #ddd;
+}
+.shadowGenerator .copy-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
 /*# sourceMappingURL=webbuilder.css.map */

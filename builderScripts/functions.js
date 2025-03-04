@@ -547,6 +547,8 @@ function generateElementList(componentId) {
             <div class="styles-container">${formatStylesForDisplay(elementStyles)}</div>
         `);
 
+        
+
         //expand/collapse style groups
         $('.style-group').each(function () {
             //wrap all the divs with class sub-property in a div with class subStylesGroup if style-group has an element with class composite
@@ -564,6 +566,33 @@ function generateElementList(componentId) {
             }
         });
 
+        $('.group_shadow .subStylesGroup').append(`
+            <div class='shadowGenerator'>
+                <div class="preview-box"></div>
+                <div class="controls">
+                    <div class="xy-offset-container">
+                        <div class="xy-offset-handle"></div>
+                    </div>
+                    <div class="values-container">
+                        <label><input type="checkbox" id="inset"> Inset</label><br>
+                        <label>X Offset: <input type="number" id="xOffset" value="5"></label>
+                        <label>Y Offset: <input type="number" id="yOffset" value="5"></label>
+                        <label>Blur: <input type="number" id="blurRadius" value="10"></label>
+                        <label>Spread: <input type="number" id="spreadRadius" value="0"></label>
+                    </div>
+                </div>
+
+                
+                <label>Opacity: <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.5"></label><br>
+                <label>Color: <input type="color" id="shadowColor" value="#000000"></label>
+                
+
+                <textarea id="cssOutput" readonly></textarea><br>
+                <button class="copy-btn">Copy CSS</button>
+            </div>`);
+
+            shadowInit();
+
         // Add change listeners to the new inputs
         setTimeout(function () {
             $('.style-value-input').on('blur', function () {
@@ -578,6 +607,7 @@ function generateElementList(componentId) {
 
         pickerjs();
         selectableInit();
+        
     });
 }
 
@@ -1006,6 +1036,85 @@ function inputChangeDetected(field, selector, property, value) {
             $('#' + field).addClass('error')
         }
     }
+
+    if (field == "box-shadow") {
+        if (CSS.supports("box-shadow", value)) {
+
+            console.log(parseShadowShorthand(value))
+        } else {
+            $('#' + field).addClass('error');
+        }
+    }
+}
+
+function parseShadowShorthand(value) {
+    let parsedProperties = {
+        inset: false,
+        offX: "",
+        offY: "",
+        blurRad: "",
+        spread: "",
+        color: "transparent"
+    }
+
+    if (value == "none") {
+        return parsedProperties;
+    } else {
+        let splitShorthand = splitBorderShorthand(value);
+
+        if (splitShorthand.length > 6) {
+            return false;
+        }
+
+        for (let i = 0; i < splitShorthand.length; i++) {
+            if (splitShorthand[i] == "inset") {
+                parsedProperties.inset = true;
+                splitShorthand.splice(i, 1);
+            }
+            if (isColor(splitShorthand[i])) {
+                parsedProperties.color = splitShorthand[i];
+                splitShorthand.splice(i, 1);
+            }
+        }
+
+        if (splitShorthand.length == 2) {
+            parsedProperties.offX = splitShorthand[0];
+            parsedProperties.offY = splitShorthand[1];
+        }
+
+        if (splitShorthand.length == 3) {
+            parsedProperties.offX = splitShorthand[0];
+            parsedProperties.offY = splitShorthand[1];
+            parsedProperties.blurRad = splitShorthand[2];
+        }
+
+        if (splitShorthand.length == 4) {
+            parsedProperties.offX = splitShorthand[0];
+            parsedProperties.offY = splitShorthand[1];
+            parsedProperties.blurRad = splitShorthand[2];
+            parsedProperties.spread = splitShorthand[3];
+        }
+
+        return parsedProperties;
+    }
+}
+
+function isColor(value) {
+    // Check for named colors (e.g., 'red', 'blue', etc.)
+    const namedColorRegex = /^[a-z]+$/i;
+
+    // Check for hex color (e.g., #fff, #ffffff, #ff0000)
+    const hexColorRegex = /^#[0-9A-Fa-f]{3,6}$/;
+
+    // Check for rgb or rgba structure
+    const rgbRgbaColorRegex = /^rgba?\(\s*[^)]*\s*\)$/;
+
+    // Check if value matches any color format
+    return (
+        namedColorRegex.test(value) ||
+        hexColorRegex.test(value) ||
+        rgbRgbaColorRegex.test(value)
+    );
 }
 
 function isValidDimension(value) {
@@ -2240,9 +2349,9 @@ function pickerjs() {
             }
         }
 
-        if($('#border-width').val()=="0px" || $('#border-style').val()=="none"){
+        if ($('#border-width').val() == "0px" || $('#border-style').val() == "none") {
             $('#border').val('none');
-        }else{
+        } else {
             $('#border').val($('#border-width').val() + " " + $('#border-style').val() + " " + $('#border-color').val());
         }
     });
@@ -2304,9 +2413,9 @@ function pickerjs() {
             }
         }
 
-        if($('#outline-width').val()=="0px" || $('#outline-style').val()=="none"){
+        if ($('#outline-width').val() == "0px" || $('#outline-style').val() == "none") {
             $('#outline').val('none');
-        }else{
+        } else {
             $('#outline').val($('#outline-width').val() + " " + $('#outline-style').val() + " " + $('#outline-color').val());
         }
     });
@@ -2556,5 +2665,89 @@ function selectableInit() {
 
             $(this).addClass('initialized')
         }
+    });
+}
+
+function shadowInit() {
+    function updateShadow() {
+        let x = $("#xOffset").val() + "px";
+        let y = $("#yOffset").val() + "px";
+        let blur = $("#blurRadius").val() + "px";
+        let spread = $("#spreadRadius").val() + "px";
+        let opacity = $("#opacity").val();
+        let color = "#000000";
+        let inset = $("#inset").is(":checked") ? "inset " : "";
+
+        let rgbaColor = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, ${opacity})`;
+        let boxShadow = `${inset}${x} ${y} ${blur} ${spread} ${rgbaColor}`;
+
+        $(".preview-box").css("box-shadow", boxShadow);
+        $("#cssOutput").val(`box-shadow: ${boxShadow};`);
+        $("#box-shadow").val(boxShadow);
+
+    }
+
+    $("#blurRadius").on("input", updateShadow);
+    $("#spreadRadius").on("input", updateShadow);
+    updateShadow();
+
+    // $(".copy-btn").on("click", function () {
+    //     $("#cssOutput").select();
+    //     document.execCommand("copy");
+    //     alert("CSS Copied!");
+    // });
+
+    // Drag UI for X & Y Offset
+    let dragging = false;
+    let offsetBox = $(".xy-offset-container");
+    let handle = $(".xy-offset-handle");
+
+    function updateXYValues(x, y) {
+        $("#xOffset").val(x);
+        $("#yOffset").val(y);
+        updateShadow();
+    }
+
+    handle.on("mousedown", function (e) {
+        dragging = true;
+        e.preventDefault();
+    });
+
+    $(document).on("mousemove", function (e) {
+        if (!dragging) return;
+
+        let boxOffset = offsetBox.offset();
+        let boxWidth = offsetBox.width();
+        let boxHeight = offsetBox.height();
+        let newX = e.pageX - boxOffset.left - boxWidth / 2;
+        let newY = e.pageY - boxOffset.top - boxHeight / 2;
+
+        newX = Math.max(-boxWidth / 2, Math.min(boxWidth / 2, newX));
+        newY = Math.max(-boxHeight / 2, Math.min(boxHeight / 2, newY));
+
+        handle.css({ left: newX + boxWidth / 2, top: newY + boxHeight / 2 });
+
+        let xValue = Math.round((newX / (boxWidth / 2)) * 20); // Scale factor
+        let yValue = Math.round((newY / (boxHeight / 2)) * 20);
+
+        updateXYValues(xValue, yValue);
+    });
+
+    $(document).on("mouseup", function () {
+        dragging = false;
+    });
+
+    // Sync inputs with draggable UI
+    $("#xOffset, #yOffset").on("input change", function () {
+        let x = parseInt($("#xOffset").val(), 10) || 0;
+        let y = parseInt($("#yOffset").val(), 10) || 0;
+        let boxWidth = offsetBox.width();
+        let boxHeight = offsetBox.height();
+
+        let newX = (x / 20) * (boxWidth / 2);
+        let newY = (y / 20) * (boxHeight / 2);
+
+        handle.css({ left: newX + boxWidth / 2, top: newY + boxHeight / 2 });
+        updateShadow();
     });
 }

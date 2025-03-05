@@ -368,7 +368,7 @@ a {
   background-color: rgba(179, 174, 174, 0.8);
 }
 
-.styleEditorPopup {
+.styleEditorPopup, .elementsTreePopup {
   display: none;
   position: fixed;
   top: 0%;
@@ -380,7 +380,7 @@ a {
   width: 25%;
   height: 100%;
 }
-.styleEditorPopup .content {
+.styleEditorPopup .content, .elementsTreePopup .content {
   width: 100%;
   position: relative;
   transform: none;
@@ -396,11 +396,11 @@ a {
   max-height: 100%;
   overflow: auto;
 }
-.styleEditorPopup .content ul {
+.styleEditorPopup .content ul, .elementsTreePopup .content ul {
   padding: 0;
   font-size: 14px;
 }
-.styleEditorPopup .content ul li {
+.styleEditorPopup .content ul li, .elementsTreePopup .content ul li {
   list-style-type: none;
   cursor: default;
   -webkit-touch-callout: none;
@@ -410,24 +410,24 @@ a {
   -ms-user-select: none;
   user-select: none;
 }
-.styleEditorPopup .content ul li ul {
+.styleEditorPopup .content ul li ul, .elementsTreePopup .content ul li ul {
   display: none;
   margin-left: 5px;
 }
-.styleEditorPopup .content ul li .liTitle {
+.styleEditorPopup .content ul li .liTitle, .elementsTreePopup .content ul li .liTitle {
   display: flex;
   align-items: center;
   font-size: 14px;
   line-height: 16px;
 }
-.styleEditorPopup .content ul li .liTitle .groupToggle {
+.styleEditorPopup .content ul li .liTitle .groupToggle, .elementsTreePopup .content ul li .liTitle .groupToggle {
   width: 10px;
   height: 10px;
   position: relative;
   margin-right: 5px;
   cursor: pointer;
 }
-.styleEditorPopup .content ul li .liTitle .groupToggle::before {
+.styleEditorPopup .content ul li .liTitle .groupToggle::before, .elementsTreePopup .content ul li .liTitle .groupToggle::before {
   content: "";
   display: block;
   width: 100%;
@@ -442,14 +442,14 @@ a {
   background-size: contain;
   transition: all 0.3s ease-in-out;
 }
-.styleEditorPopup .content ul li.expanded > .liTitle .groupToggle::before {
+.styleEditorPopup .content ul li.expanded > .liTitle .groupToggle::before, .elementsTreePopup .content ul li.expanded > .liTitle .groupToggle::before {
   transform: translate(-50%, -50%);
 }
-.styleEditorPopup .content ul li.singleElement {
+.styleEditorPopup .content ul li.singleElement, .elementsTreePopup .content ul li.singleElement {
   padding-left: 15px;
   position: relative;
 }
-.styleEditorPopup .content ul li.singleElement::before {
+.styleEditorPopup .content ul li.singleElement::before, .elementsTreePopup .content ul li.singleElement::before {
   content: "";
   display: block;
   position: absolute;
@@ -460,7 +460,7 @@ a {
   background-color: black;
   width: 10px;
 }
-.styleEditorPopup .content ul li.singleElement::after {
+.styleEditorPopup .content ul li.singleElement::after, .elementsTreePopup .content ul li.singleElement::after {
   content: "";
   display: block;
   position: absolute;
@@ -470,15 +470,15 @@ a {
   background-color: black;
   width: 1px;
 }
-.styleEditorPopup .content ul li.singleElement:last-child::after {
+.styleEditorPopup .content ul li.singleElement:last-child::after, .elementsTreePopup .content ul li.singleElement:last-child::after {
   height: 50%;
 }
-.styleEditorPopup .content .styles-container .style-group {
+.styleEditorPopup .content .styles-container .style-group, .elementsTreePopup .content .styles-container .style-group {
   margin-bottom: 10px;
   border-left: 2px solid #ccc;
   padding-left: 10px;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row {
+.styleEditorPopup .content .styles-container .style-group .style-row, .elementsTreePopup .content .styles-container .style-group .style-row {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -486,42 +486,43 @@ a {
   font-size: 12px;
   transition: all 0.3s ease-in-out;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row:not(.composite):hover {
+.styleEditorPopup .content .styles-container .style-group .style-row:not(.composite):hover, .elementsTreePopup .content .styles-container .style-group .style-row:not(.composite):hover {
   background-color: #ededed;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .style-property {
+.styleEditorPopup .content .styles-container .style-group .style-row .style-property, .elementsTreePopup .content .styles-container .style-group .style-row .style-property {
   font-family: monospace;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .style-value-input {
+.styleEditorPopup .content .styles-container .style-group .style-row .style-value-input, .elementsTreePopup .content .styles-container .style-group .style-row .style-value-input {
   padding: 2px 5px;
   border: 1px solid #ddd;
   border-radius: 3px;
   width: 130px;
+  outline: none;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .style-value-input.error {
+.styleEditorPopup .content .styles-container .style-group .style-row .style-value-input.error, .elementsTreePopup .content .styles-container .style-group .style-row .style-value-input.error {
   border-color: red;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .custom-style-value-input.error {
+.styleEditorPopup .content .styles-container .style-group .style-row .custom-style-value-input.error, .elementsTreePopup .content .styles-container .style-group .style-row .custom-style-value-input.error {
   border-color: red;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .unit {
+.styleEditorPopup .content .styles-container .style-group .style-row .unit, .elementsTreePopup .content .styles-container .style-group .style-row .unit {
   color: #666;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite {
+.styleEditorPopup .content .styles-container .style-group .style-row.composite, .elementsTreePopup .content .styles-container .style-group .style-row.composite {
   font-weight: bold;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property {
+.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property {
   cursor: pointer;
   position: relative;
   z-index: 1;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property:hover::after {
+.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property:hover::after, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property:hover::after {
   opacity: 1;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property.open::before {
+.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property.open::before, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property.open::before {
   transform: translateY(-50%) rotateZ(0deg);
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property::before {
+.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property::before, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property::before {
   content: "";
   display: block;
   position: absolute;
@@ -536,7 +537,7 @@ a {
   background-position: center;
   transition: all 0.3s ease-in-out;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property:after {
+.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property:after, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property:after {
   content: "";
   display: block;
   position: absolute;
@@ -550,17 +551,17 @@ a {
   opacity: 0;
   z-index: -1;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-value-input {
+.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-value-input, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-value-input {
   width: 130px;
 }
-.styleEditorPopup .content .styles-container .style-group.group_text .row_color input, .styleEditorPopup .content .styles-container .style-group.group_border .row_border-color input, .styleEditorPopup .content .styles-container .style-group.group_background .row_background-color input {
+.styleEditorPopup .content .styles-container .style-group.group_text .row_color input, .styleEditorPopup .content .styles-container .style-group.group_border .row_border-color input, .styleEditorPopup .content .styles-container .style-group.group_background .row_background-color input, .elementsTreePopup .content .styles-container .style-group.group_text .row_color input, .elementsTreePopup .content .styles-container .style-group.group_border .row_border-color input, .elementsTreePopup .content .styles-container .style-group.group_background .row_background-color input {
   width: 110px;
 }
-.styleEditorPopup .content .styles-container .subStylesGroup {
+.styleEditorPopup .content .styles-container .subStylesGroup, .styleEditorPopup .content .styles-container .flexItems, .styleEditorPopup .content .styles-container .absoluteItems, .elementsTreePopup .content .styles-container .subStylesGroup, .elementsTreePopup .content .styles-container .flexItems, .elementsTreePopup .content .styles-container .absoluteItems {
   display: none;
 }
 
-.styleEditorPopup.show {
+.styleEditorPopup.show, .elementsTreePopup.show {
   display: block;
 }
 
@@ -720,12 +721,21 @@ a {
 
 .shadowGenerator {
   font-size: 12px;
+  border: 1px solid #ccc;
+  padding: 0 5px 5px 5px;
+  border-radius: 5px;
 }
 .shadowGenerator .preview-box {
-  width: 30px;
+  width: 100px;
   height: 30px;
   background: #ffffff;
   transition: all 0.3s ease;
+  line-height: 30px;
+  border: 1px solid #ccc;
+  margin: 20px auto;
+  text-align: center;
+  font-style: italic;
+  border-radius: 5px;
 }
 .shadowGenerator .controls {
   display: flex;
@@ -757,17 +767,90 @@ a {
   display: flex;
   justify-content: space-between;
 }
+.shadowGenerator label .lbldiv {
+  width: 60%;
+}
+.shadowGenerator .chckbx #inset {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+}
+.shadowGenerator .chckbx #inset:checked ~ label::before {
+  background-color: dodgerblue;
+}
+.shadowGenerator .chckbx #inset:checked ~ label::after {
+  background-color: white;
+  right: 2px;
+  content: "1";
+  color: dodgerblue;
+}
+.shadowGenerator .chckbx label {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+.shadowGenerator .chckbx label::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  border: 1px solid #ccc;
+  width: 40px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: #ccc;
+  transition: all 0.3s ease-in-out;
+}
+.shadowGenerator .chckbx label::after {
+  content: "0";
+  display: block;
+  position: absolute;
+  top: 50%;
+  right: 22px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #000;
+  text-align: center;
+  line-height: 16px;
+  color: white;
+  transition: all 0.3s ease-in-out;
+}
+.shadowGenerator .shadowcolordiv input {
+  width: 100px;
+}
 .shadowGenerator input {
   width: 50px;
   border: 1px solid #ddd;
 }
-.shadowGenerator .copy-btn {
-  margin-top: 10px;
-  padding: 5px 10px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  cursor: pointer;
+
+.back {
+  font-size: 14px;
+  margin-bottom: 10px;
+  display: block;
+  position: relative;
+}
+
+#advancedStyles {
+  resize: vertical;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-height: 100px;
+}
+
+.pseudoP::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border: 1px solid red;
 }
 
 /*# sourceMappingURL=webbuilder.css.map */

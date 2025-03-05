@@ -397,11 +397,14 @@ function openStyleEditor(component) {
 
     generateElementList(selectedComponent.id);
 
-    $('.styleEditorPopup').addClass('show');
+    $('.elementsTreePopup').addClass('show');
 }
 
 function closeStyleEditor() {
     $('.styleEditorPopup').removeClass('show');
+}
+function closeElementsTree() {
+    $('.elementsTreePopup').removeClass('show');
 }
 
 function generateElementList(componentId) {
@@ -434,7 +437,11 @@ function generateElementList(componentId) {
                 const groupLi = document.createElement("li");
                 const groupDiv = document.createElement("div");
                 groupDiv.className = "liTitle";
+
+
                 groupDiv.textContent = `${tag}`;
+
+
                 groupLi.appendChild(groupDiv);
                 ul.appendChild(groupLi);
 
@@ -444,7 +451,11 @@ function generateElementList(componentId) {
                 elements.forEach((child, index) => {
                     const individualLi = document.createElement("li");
                     individualLi.classList.add("singleElement");
+
+
                     individualLi.textContent = `${tag}:nth-child(${index + 1})`;
+
+
                     groupUl.appendChild(individualLi);
 
                     if (child.children.length > 0) {
@@ -456,10 +467,16 @@ function generateElementList(componentId) {
                 if (elements[0].children.length > 0) {
                     const div = document.createElement("div");
                     div.className = "liTitle";
+
+
                     div.textContent = `${tag}`;
+
+
                     individualLi.appendChild(div);
                 } else {
+
                     individualLi.textContent = `${tag}`;
+
                 }
                 ul.appendChild(individualLi);
 
@@ -467,6 +484,7 @@ function generateElementList(componentId) {
                     individualLi.appendChild(createList(elements[0]));
                 }
             }
+
         });
 
         return ul;
@@ -502,6 +520,8 @@ function generateElementList(componentId) {
         }
     })
     $('.groupTitle').click(function () {
+        $('.styleEditorPopup').addClass('show');
+
         const elementText = $(this).text();
         let selectorParts = [];
         let lastTag = '';
@@ -543,11 +563,10 @@ function generateElementList(componentId) {
 
         // Update the cssSelector element with formatted styles
         $('#cssSelector').html(`
+            <a class="back" href="javascript:closeStyleEditor();">Back to tree</a>
             <div class='text-muted'>${selector}</div>
             <div class="styles-container">${formatStylesForDisplay(elementStyles)}</div>
         `);
-
-        
 
         //expand/collapse style groups
         $('.style-group').each(function () {
@@ -568,30 +587,29 @@ function generateElementList(componentId) {
 
         $('.group_shadow .subStylesGroup').append(`
             <div class='shadowGenerator'>
-                <div class="preview-box"></div>
+                <div class="preview-box">Preview</div>
                 <div class="controls">
                     <div class="xy-offset-container">
                         <div class="xy-offset-handle"></div>
                     </div>
                     <div class="values-container">
-                        <label><input type="checkbox" id="inset"> Inset</label><br>
-                        <label>X Offset: <input type="number" id="xOffset" value="5"></label>
-                        <label>Y Offset: <input type="number" id="yOffset" value="5"></label>
-                        <label>Blur: <input type="number" id="blurRadius" value="10"></label>
-                        <label>Spread: <input type="number" id="spreadRadius" value="0"></label>
+                        <div class="lbldiv chckbx">
+                            <input type="checkbox" id="inset">
+                            <label for="inset">Inset</label>
+                        </div>
+                        <label><div class="lbldiv">X Offset</div><input type="number" id="xOffset"></label>
+                        <label><div class="lbldiv">Y Offset</div><input type="number" id="yOffset"></label>
+                        <label><div class="lbldiv">Blur</div><input type="number" id="blurRadius"></label>
+                        <label><div class="lbldiv">Spread</div><input type="number" id="spreadRadius"></label>
+                        <div class="flex align-items-center justify-content-between shadowcolordiv">
+                            <input type="text" class="style-value-input" id="shadow-color" data-property="color" value="transparent">
+                            <div class="pickrjs" data-property="shadow-color"></div>
+                        </div>
                     </div>
                 </div>
-
-                
-                <label>Opacity: <input type="range" id="opacity" min="0" max="1" step="0.1" value="0.5"></label><br>
-                <label>Color: <input type="color" id="shadowColor" value="#000000"></label>
-                
-
-                <textarea id="cssOutput" readonly></textarea><br>
-                <button class="copy-btn">Copy CSS</button>
             </div>`);
 
-            shadowInit();
+        shadowInit();
 
         // Add change listeners to the new inputs
         setTimeout(function () {
@@ -603,11 +621,15 @@ function generateElementList(componentId) {
             $('.style-value-input').on('input', function () {
                 $(this).removeClass('error');
             });
+
+            // group conditional Fields
+            $('.row_flex-direction,.row_align-items,.row_justify-content').wrapAll("<div class='flexItems'></div>")
+            $('.row_top,.row_right,.row_bottom,.row_left').wrapAll("<div class='absoluteItems'></div>")
         }, 1000);
 
         pickerjs();
         selectableInit();
-        
+
     });
 }
 
@@ -655,12 +677,20 @@ function inputChangeDetected(field, selector, property, value) {
         backgroundColor_pickrjs.setColor(value)
     }
 
+    if (field == "shadow-color") {
+        if (value.includes('rgb')) {
+            shadowColor_pickrjs.setColorRepresentation("RGBA")
+        } else {
+            shadowColor_pickrjs.setColorRepresentation("HEXA")
+        }
+
+        shadowColor_pickrjs.setColor(value)
+    }
+
     if (field == "border" || field == "outline") {
         if (isValidBorderShortHand(value)) {
 
             let subProperties = splitBorderShorthand(value)
-
-            console.log(subProperties)
 
             if (subProperties.length == 1 && subProperties[0] == "none") {
                 $('#' + field + '-width').val('0px');
@@ -1024,7 +1054,25 @@ function inputChangeDetected(field, selector, property, value) {
 
     if (field == "background-repeat" || field == "position" || field == "display" || field == "flex-direction" || field == "align-items" || field == "justify-content" || field == "overflow" || field == "visibility") {
         setTimeout(function () {
-            console.log($('#' + field).val())
+            value = $('#' + field).val()
+
+            console.log(value)
+
+            if (field == "position") {
+                if (value == "absolute" || value == "fixed") {
+                    $('.absoluteItems').slideDown();
+                } else {
+                    $('.absoluteItems').slideUp();
+                }
+            }
+
+            if (field == "display") {
+                if (value == "flex" || value == "inline-flex") {
+                    $('.flexItems').slideDown();
+                } else {
+                    $('.flexItems').slideUp();
+                }
+            }
         }, 500);
     }
 
@@ -1040,11 +1088,38 @@ function inputChangeDetected(field, selector, property, value) {
     if (field == "box-shadow") {
         if (CSS.supports("box-shadow", value)) {
 
-            console.log(parseShadowShorthand(value))
+            let parsed = parseShadowShorthand(value)
+
+            updateShadowOnChange(parsed.offX == "" ? '0px' : parsed.offX, parsed.offY == "" ? '0px' : parsed.offY, parsed.blurRad == "" ? '0px' : parsed.blurRad, parsed.spread == "" ? '0px' : parsed.spread, parsed.color, parsed.inset);
         } else {
             $('#' + field).addClass('error');
         }
     }
+
+    if (field == "z-index") {
+        //validate zindex
+        if (isValidZindex(value)) {
+
+        } else {
+            $('#' + field).addClass('error');
+        }
+    }
+
+    if (field == "transform") {
+        if (isValidTransform(value)) {
+
+        } else {
+            $('#' + field).addClass('error');
+        }
+    }
+}
+
+function isValidTransform(value) {
+    return CSS.supports("transform", value)
+}
+
+function isValidZindex(value) {
+    return value === "auto" || /^-?\d+$/.test(value);
 }
 
 function parseShadowShorthand(value) {
@@ -1724,7 +1799,13 @@ function formatStylesForDisplay(styles) {
             grouped[mainProperty].push(style);
             processedProperties.add(style.property);
         }
+
+        if (style.property == "box-shadow") {
+            $('#box-shadow').val(style.value)
+        }
     });
+
+
 
     // Generate HTML for each group
     for (const [mainProperty, styleGroup] of Object.entries(grouped)) {
@@ -1756,6 +1837,18 @@ function formatStylesForDisplay(styles) {
 
         html += `</div>`;
     }
+
+    html += `
+        <div class="style-group group_advanced">
+            <div class="style-row composite">
+                <span class="style-property">Advanced</span>
+            </div>
+        
+            <div class="style-row sub-property row_pseudo-after">
+                <textarea class="style-value-input" id="advancedStyles" placeholder="Custom CSS code..."></textarea>
+            </div>
+        </div>
+    `;
 
     return html;
 }
@@ -2482,6 +2575,67 @@ function pickerjs() {
     backgroundColor_pickrjs.on('clear', () => {
         backgroundColor_pickrjs.setColor('rgba(0, 0, 0, 0)');
     });
+
+    // shadow-color
+    shadowColor_pickrjs = Pickr.create({
+        el: '.pickrjs[data-property="shadow-color"]',
+        theme: 'monolith',
+        default: '#000000',
+        defaultRepresentation: 'HEXA',
+        components: {
+            preview: true,
+            opacity: true,
+            hue: true,
+            interaction: {
+                hex: true,
+                rgba: true,
+                input: true,
+                clear: true,
+                save: true,
+                copy: true
+            }
+        }
+    });
+
+    shadowColor_pickrjs.on('init', (instance) => {
+        if ($('#shadow-color').val() == "transparent") {
+            instance.setColor("transparent", true);
+        } else {
+            instance.setColor(instance.getColor().toHEXA().toString(), true);
+            instance.setColor(rgbaToHex($('#shadow-color').val()), true);
+            $('#shadow-color').val(instance._eventBindings[4][0].value)
+        }
+        instance.applyColor();
+    });
+
+    shadowColor_pickrjs.on('save', (color) => {
+        if (color == null) return;
+
+        if (shadowColor_pickrjs.getColorRepresentation() == "HEXA") {
+            let selectedColor = shadowColor_pickrjs.getSelectedColor().toHEXA().toString();
+            if (selectedColor.length == 9 && selectedColor.slice(-2) == "00") {
+                $('#shadow-color').val('transparent')
+            } else {
+                $('#shadow-color').val(selectedColor)
+            }
+        }
+
+        if (shadowColor_pickrjs.getColorRepresentation() == "RGBA") {
+            let selectedColor = shadowColor_pickrjs.getSelectedColor().toRGBA().toString(0);
+            if (selectedColor.split(" ")[3].replace(")", "") == "0") {
+                $('#shadow-color').val('transparent')
+            } else {
+                $('#shadow-color').val(selectedColor)
+            }
+        }
+
+        updateShadow();
+
+    });
+
+    shadowColor_pickrjs.on('clear', () => {
+        shadowColor_pickrjs.setColor('rgba(0, 0, 0, 0)');
+    });
 }
 
 function selectableInit() {
@@ -2669,33 +2823,21 @@ function selectableInit() {
 }
 
 function shadowInit() {
-    function updateShadow() {
-        let x = $("#xOffset").val() + "px";
-        let y = $("#yOffset").val() + "px";
-        let blur = $("#blurRadius").val() + "px";
-        let spread = $("#spreadRadius").val() + "px";
-        let opacity = $("#opacity").val();
-        let color = "#000000";
-        let inset = $("#inset").is(":checked") ? "inset " : "";
 
-        let rgbaColor = `rgba(${parseInt(color.slice(1, 3), 16)}, ${parseInt(color.slice(3, 5), 16)}, ${parseInt(color.slice(5, 7), 16)}, ${opacity})`;
-        let boxShadow = `${inset}${x} ${y} ${blur} ${spread} ${rgbaColor}`;
-
-        $(".preview-box").css("box-shadow", boxShadow);
-        $("#cssOutput").val(`box-shadow: ${boxShadow};`);
-        $("#box-shadow").val(boxShadow);
-
+    if ($('#box-shadow').val() == 'none') {
+        $("#xOffset").val('0');
+        $("#yOffset").val('0');
+        $("#blurRadius").val('0');
+        $("#spreadRadius").val('0');
+        $("#shadow-color").val('transparent');
     }
 
+
+    $("#inset").on("change", updateShadow);
     $("#blurRadius").on("input", updateShadow);
     $("#spreadRadius").on("input", updateShadow);
+    $("#shadow-color").on("input change", updateShadow);
     updateShadow();
-
-    // $(".copy-btn").on("click", function () {
-    //     $("#cssOutput").select();
-    //     document.execCommand("copy");
-    //     alert("CSS Copied!");
-    // });
 
     // Drag UI for X & Y Offset
     let dragging = false;
@@ -2750,4 +2892,67 @@ function shadowInit() {
         handle.css({ left: newX + boxWidth / 2, top: newY + boxHeight / 2 });
         updateShadow();
     });
+}
+
+function updateShadow() {
+    let x = $("#xOffset").val() + "px";
+    let y = $("#yOffset").val() + "px";
+    let blur = $("#blurRadius").val() + "px";
+    let spread = $("#spreadRadius").val() + "px";
+    let color = $("#shadow-color").val();
+    let inset = $("#inset").is(":checked") ? "inset" : "";
+
+    let boxShadow = "";
+
+    if (x == "0px" && y == "0px" && blur == "0px" && spread == "0px") {
+        boxShadow = "none";
+    } else {
+        boxShadow = `${inset} ${x} ${y} ${blur == '0px' ? '' : blur} ${spread == '0px' ? '' : spread} ${color}`;
+    }
+
+    $(".preview-box").css("box-shadow", boxShadow);
+    $("#box-shadow").val(boxShadow.trim().replace(/\s+/g, " "));
+
+    let xpos = parseInt($("#xOffset").val(), 10) || 0;
+    let ypos = parseInt($("#yOffset").val(), 10) || 0;
+    let boxWidth = $(".xy-offset-container").width();
+    let boxHeight = $(".xy-offset-container").height();
+
+    let newX = (xpos / 20) * (boxWidth / 2);
+    let newY = (ypos / 20) * (boxHeight / 2);
+
+    $(".xy-offset-handle").css({ left: newX + boxWidth / 2, top: newY + boxHeight / 2 });
+}
+
+function updateShadowOnChange(x, y, blur, spread, color, inset) {
+    $("#xOffset").val(parseInt(x));
+    $("#yOffset").val(parseInt(y));
+    $("#blurRadius").val(parseInt(blur));
+    $("#spreadRadius").val(parseInt(spread));
+    $("#shadow-color").val(color);
+
+    if (inset) {
+        $("#inset").prop("checked", true);
+        inset = "inset";
+    } else {
+        $("#inset").prop("checked", false);
+        inset = "";
+    }
+
+    let boxShadow = "";
+
+    if (x == "0px" && y == "0px" && blur == "0px" && spread == "0px") {
+        boxShadow = "none";
+    } else {
+        boxShadow = `${inset} ${x} ${y} ${blur == '0px' ? '' : blur} ${spread == '0px' ? '' : spread} ${color}`;
+    }
+
+    $(".preview-box").css("box-shadow", boxShadow);
+    $("#box-shadow").val(boxShadow.trim().replace(/\s+/g, " "));
+    $("#xOffset, #yOffset").trigger('change')
+    $("#shadow-color").trigger('blur');
+}
+
+function getPseudoElementStyles(element, pseudo) {
+    return window.getComputedStyle(element, pseudo);
 }

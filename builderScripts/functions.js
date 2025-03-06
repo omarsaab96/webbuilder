@@ -6,6 +6,7 @@ let stylesEditsArray = [];
 let fontColor_pickrjs = null;
 let borderColor_pickrjs = null;
 let backgroundColor_pickrjs = null;
+let appliedStyles = {};
 
 $(document).ready(function () {
     componentCounter = 0
@@ -402,7 +403,9 @@ function openStyleEditor(component) {
 
 function closeStyleEditor() {
     $('.styleEditorPopup').removeClass('show');
+    first = true;
 }
+
 function closeElementsTree() {
     $('.elementsTreePopup').removeClass('show');
 }
@@ -418,14 +421,21 @@ function generateElementList(componentId) {
 
     function createList(parentElement) {
         const ul = document.createElement("ul");
-        const children = Array.from(parentElement.children).filter(child =>
-            !child.classList.contains("removeOnBuild")
-        );
+        const children = Array.from(parentElement.children).filter(child => !child.classList.contains("removeOnBuild"));
 
         const tagMap = new Map();
 
         children.forEach((child) => {
-            const tag = child.tagName.toLowerCase();
+            let tag = child.tagName.toLowerCase();
+            if (child.id.trim() !== "") {
+                tag += "#" + child.id;
+            }
+            if (child.classList.length !== 0) {
+                child.classList.forEach(element => {
+                    tag += "." + element;
+                });
+            }
+
             if (!tagMap.has(tag)) {
                 tagMap.set(tag, []);
             }
@@ -437,10 +447,7 @@ function generateElementList(componentId) {
                 const groupLi = document.createElement("li");
                 const groupDiv = document.createElement("div");
                 groupDiv.className = "liTitle";
-
-
-                groupDiv.textContent = `${tag}`;
-
+                $(groupDiv).html(formatTag(tag));
 
                 groupLi.appendChild(groupDiv);
                 ul.appendChild(groupLi);
@@ -452,9 +459,9 @@ function generateElementList(componentId) {
                     const individualLi = document.createElement("li");
                     individualLi.classList.add("singleElement");
 
+                    processedTag = tag + `:nth-child(${index + 1})`;
 
-                    individualLi.textContent = `${tag}:nth-child(${index + 1})`;
-
+                    $(individualLi).html(formatTag(processedTag));
 
                     groupUl.appendChild(individualLi);
 
@@ -464,27 +471,25 @@ function generateElementList(componentId) {
                 });
             } else {
                 const individualLi = document.createElement("li");
+
                 if (elements[0].children.length > 0) {
                     const div = document.createElement("div");
                     div.className = "liTitle";
 
-
-                    div.textContent = `${tag}`;
-
+                    $(div).html(formatTag(tag));
 
                     individualLi.appendChild(div);
                 } else {
-
-                    individualLi.textContent = `${tag}`;
+                    $(individualLi).html(formatTag(tag));
 
                 }
+
                 ul.appendChild(individualLi);
 
                 if (elements[0].children.length > 0) {
                     individualLi.appendChild(createList(elements[0]));
                 }
             }
-
         });
 
         return ul;
@@ -494,7 +499,19 @@ function generateElementList(componentId) {
     const rootLi = document.createElement("li");
     const groupDiv = document.createElement("div");
     groupDiv.className = "liTitle";
-    groupDiv.textContent = `#${componentId}`;
+
+    let tag = component.tagName.toLowerCase();
+
+    if (component.id.trim() !== "") {
+        tag += "#" + component.id;
+    }
+    if (component.classList.length !== 0) {
+        component.classList.forEach(element => {
+            tag += "." + element;
+        });
+    }
+
+    $(groupDiv).html(formatTag(tag));
     rootLi.appendChild(groupDiv);
     container.appendChild(rootLi);
 
@@ -503,12 +520,13 @@ function generateElementList(componentId) {
     rootLi.appendChild(rootList);
 
     $('.liTitle').each(function () {
-        let thisText = $(this).text();
-        $(this).html("<div class='groupToggle'></div><div class='groupTitle'>" + thisText + "</div>")
+        let thisHTML = $(this).html();
+        $(this).html("<div class='groupToggle'></div><div class='groupTitle'>" + thisHTML + "</div>");
     });
+
     $('.singleElement').each(function () {
-        let thisText = $(this).text();
-        $(this).html("<div class='groupTitle'>" + thisText + "</div>")
+        let thisHTML = $(this).html();
+        $(this).html("<div class='groupTitle'>" + thisHTML + "</div>")
     });
     $('.groupToggle').click(function () {
         if ($(this).parent().parent().hasClass('expanded')) {
@@ -558,15 +576,23 @@ function generateElementList(componentId) {
 
         // Create the final selector
         const selector = selectorParts.join(' > ');
-
         const elementStyles = getStyles(selector);
+        const hasAfter = getPseudoElementStyles(document.querySelector(selector), '::after');
+        const hasBefore = getPseudoElementStyles(document.querySelector(selector), '::before');
 
         // Update the cssSelector element with formatted styles
         $('#cssSelector').html(`
             <a class="back" href="javascript:closeStyleEditor();">Back to tree</a>
-            <div class='text-muted'>${selector}</div>
+            <div class='text-muted cssSelectorValue'>${selector}</div>
             <div class="styles-container">${formatStylesForDisplay(elementStyles)}</div>
         `);
+
+        if (hasAfter.content != "none") {
+            console.log(selector + ' has after')
+        }
+        if (hasBefore.content != "none") {
+            console.log(selector + ' has before')
+        }
 
         //expand/collapse style groups
         $('.style-group').each(function () {
@@ -703,15 +729,14 @@ function inputChangeDetected(field, selector, property, value) {
                 if (field == "border") {
                     borderColor_pickrjs.setColor(subProperties[2], true);
                     borderColor_pickrjs.applyColor();
+                    applyStyle(selector, property, $('#border').val())
                 }
                 if (field == "outline") {
                     outlineColor_pickrjs.setColor(subProperties[2], true);
                     outlineColor_pickrjs.applyColor();
+                    applyStyle(selector, property, $('#outline').val())
                 }
             }
-
-
-
         } else {
             $('#' + field).addClass('error')
             $('#' + field + '-width').val('');
@@ -731,7 +756,8 @@ function inputChangeDetected(field, selector, property, value) {
 
     if (field == "border-width" || field == "outline-width") {
         if (isValidPaddingOrMargin(value)) {
-            $('#' + field).val(ifJustNumberAddPxUnit(value))
+            value = ifJustNumberAddPxUnit(value)
+            $('#' + field).val(value)
 
             if (field == "border-width") {
                 if ($('#' + field).val() == "0px") {
@@ -743,6 +769,8 @@ function inputChangeDetected(field, selector, property, value) {
                         $('#border').val(ifJustNumberAddPxUnit($('#border-width').val()) + " " + $('#border-style').val() + " " + $('#border-color').val());
                     }
                 }
+
+                applyStyle(selector, 'border', $('#border').val())
             }
 
             if (field == "outline-width") {
@@ -755,15 +783,19 @@ function inputChangeDetected(field, selector, property, value) {
                         $('#outline').val(ifJustNumberAddPxUnit($('#outline-width').val()) + " " + $('#outline-style').val() + " " + $('#outline-color').val());
                     }
                 }
+                applyStyle(selector, 'outline', $('#outline').val())
+
             }
         } else {
             if (field == "border-width") {
                 $('#border').val('');
                 $('#border-width').addClass('error')
+                return;
             }
             if (field == "outline-width") {
                 $('#outline').val('');
                 $('#outline-width').addClass('error')
+                return;
             }
         }
     }
@@ -780,6 +812,8 @@ function inputChangeDetected(field, selector, property, value) {
                         $('#border').val($('#border-width').val() + " " + $('#border-style').val() + " " + $('#border-color').val());
                     }
                 }
+                applyStyle(selector, 'border', $('#border').val())
+
             }
             if (field == "outline-style") {
                 if (value == 'none') {
@@ -791,6 +825,8 @@ function inputChangeDetected(field, selector, property, value) {
                         $('#outline').val($('#outline-width').val() + " " + $('#outline-style').val() + " " + $('#outline-color').val());
                     }
                 }
+                applyStyle(selector, 'outline', $('#outline').val())
+
             }
         } else {
 
@@ -850,6 +886,8 @@ function inputChangeDetected(field, selector, property, value) {
             $('#border-top-right-radius').val(topright);
             $('#border-bottom-right-radius').val(bottomright);
             $('#border-bottom-left-radius').val(bottomleft);
+            applyStyle(selector, property, $('#border-radius').val())
+
 
         } else {
             console.log('wrong syntax for ' + field);
@@ -881,6 +919,7 @@ function inputChangeDetected(field, selector, property, value) {
                 $('#border-radius').val(corner1 + " " + corner2 + " " + corner3 + " " + corner4)
             }
 
+            applyStyle(selector, 'border-radius', $('#border-radius').val())
 
         } else {
             $('#border-radius').val('');
@@ -934,6 +973,8 @@ function inputChangeDetected(field, selector, property, value) {
             $('#' + field + '-right').val(right);
             $('#' + field + '-bottom').val(bottom);
             $('#' + field + '-left').val(left);
+            applyStyle(selector, property, $('#' + field).val())
+
 
         } else {
             console.log('wrong syntax for ' + field);
@@ -1043,21 +1084,18 @@ function inputChangeDetected(field, selector, property, value) {
             }
         }
 
-
+        applyStyle(selector, field.split("-")[0], $('#' + field.split("-")[0]).val())
     }
 
     if (field == "background-size" || field == "background-position") {
         setTimeout(function () {
-            console.log($('#' + field).val())
+            applyStyle(selector, property, $('#' + field).val())
         }, 500);
     }
 
     if (field == "background-repeat" || field == "position" || field == "display" || field == "flex-direction" || field == "align-items" || field == "justify-content" || field == "overflow" || field == "visibility") {
         setTimeout(function () {
             value = $('#' + field).val()
-
-            console.log(value)
-
             if (field == "position") {
                 if (value == "absolute" || value == "fixed") {
                     $('.absoluteItems').slideDown();
@@ -1073,6 +1111,8 @@ function inputChangeDetected(field, selector, property, value) {
                     $('.flexItems').slideUp();
                 }
             }
+
+            applyStyle(selector, property, $('#' + field).val())
         }, 500);
     }
 
@@ -1080,9 +1120,17 @@ function inputChangeDetected(field, selector, property, value) {
         value = ifJustNumberAddPxUnit(value)
         $('#' + field).val(value)
 
+        applyStyle(selector, property, $('#' + field).val())
+
+
         if (!isValidDimension(value)) {
             $('#' + field).addClass('error')
+            return;
         }
+    }
+
+    if (field == "font-family") {
+        applyStyle(selector, property, value)
     }
 
     if (field == "box-shadow") {
@@ -1091,6 +1139,7 @@ function inputChangeDetected(field, selector, property, value) {
             let parsed = parseShadowShorthand(value)
 
             updateShadowOnChange(parsed.offX == "" ? '0px' : parsed.offX, parsed.offY == "" ? '0px' : parsed.offY, parsed.blurRad == "" ? '0px' : parsed.blurRad, parsed.spread == "" ? '0px' : parsed.spread, parsed.color, parsed.inset);
+
         } else {
             $('#' + field).addClass('error');
         }
@@ -1098,18 +1147,27 @@ function inputChangeDetected(field, selector, property, value) {
 
     if (field == "z-index") {
         //validate zindex
-        if (isValidZindex(value)) {
-
-        } else {
+        if (!isValidZindex(value)) {
             $('#' + field).addClass('error');
+            return;
+        } else {
+            applyStyle(selector, property, $('#z-index').val())
         }
     }
 
     if (field == "transform") {
-        if (isValidTransform(value)) {
-
-        } else {
+        if (!isValidTransform(value)) {
             $('#' + field).addClass('error');
+            return;
+        } else {
+            applyStyle(selector, property, $('#transform').val())
+        }
+    }
+
+    //save advanced
+    if (field == "advancedStyles") {
+        if (value.trim() != "") {
+            printAppliedStyles(value)
         }
     }
 }
@@ -1610,7 +1668,9 @@ function isValidBorderShortHand(value) {
             if (!isValidHEX(val)) return false;
         } else {
             if (!isValidPaddingOrMargin(val)) {
-                if (!isValidBorderStyle(val)) return false;
+                if (!isValidBorderStyle(val)) {
+                    if (!CSS.supports('color', val)) return false;
+                }
             }
         }
     }
@@ -1844,8 +1904,8 @@ function formatStylesForDisplay(styles) {
                 <span class="style-property">Advanced</span>
             </div>
         
-            <div class="style-row sub-property row_pseudo-after">
-                <textarea class="style-value-input" id="advancedStyles" placeholder="Custom CSS code..."></textarea>
+            <div class="style-row sub-property row_advanced">
+                <textarea class="style-value-input" data-property="advanced" id="advancedStyles" placeholder="Custom CSS code..."></textarea>
             </div>
         </div>
     `;
@@ -2004,7 +2064,7 @@ function removeStyleFromArray(selector, property) {
 function getStyles(element) {
     let styles = [];
     const targetElement = document.querySelector(element);
-    if (!targetElement) return styles;
+    if (!targetElement) return false;
 
     let elementStyles = window.getComputedStyle(targetElement);
 
@@ -2081,7 +2141,7 @@ function createInputRow(style, isComposite) {
     let additionalElement = '';
 
     if (style.property == "border" || style.property == "outline") {
-        if (style.value.split(" ")[0] == '0px' || style.value.split(" ")[1] == 'none') {
+        if (style.value.includes("0px") || style.value.includes("none")) {
             inputValue = "none";
         }
     }
@@ -2090,7 +2150,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="relative" class="style-value-input" id="position">
+                <input type="text" data-selectable-selected="1" data-property="position" value="relative" class="style-value-input" id="position">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">relative</li>
@@ -2107,7 +2167,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="block" class="style-value-input" id="display">
+                <input type="text" data-selectable-selected="1" value="block" data-property="display" class="style-value-input" id="display">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">block</li>
@@ -2125,7 +2185,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="row" class="style-value-input" id="flex-direction">
+                <input type="text" data-selectable-selected="1" value="row" data-property="flex-direction" class="style-value-input" id="flex-direction">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">row</li>
@@ -2142,7 +2202,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="flex-start" class="style-value-input" id="align-items">
+                <input type="text" data-selectable-selected="1" value="flex-start" data-property="align-items" class="style-value-input" id="align-items">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">flex-start</li>
@@ -2160,7 +2220,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="flex-start" class="style-value-input" id="justify-content">
+                <input type="text" data-selectable-selected="1" value="flex-start" data-property="justify-content" class="style-value-input" id="justify-content">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">flex-start</li>
@@ -2179,7 +2239,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="visible" class="style-value-input" id="overflow">
+                <input type="text" data-selectable-selected="1" value="visible" data-property="overflow" class="style-value-input" id="overflow">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">visible</li>
@@ -2195,7 +2255,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="visible" class="style-value-input" id="visibility">
+                <input type="text" data-selectable-selected="1" value="visible" data-property="visibility" class="style-value-input" id="visibility">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">visible</li>
@@ -2210,7 +2270,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="no-repeat" class="style-value-input"  id="background-repeat">
+                <input type="text" data-selectable-selected="1" value="no-repeat" data-property="background-repeat" class="style-value-input"  id="background-repeat">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">no-repeat</li>
@@ -2227,7 +2287,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="auto" class="style-value-input" id="background-size">
+                <input type="text" data-selectable-selected="1" value="auto" data-property="background-size" class="style-value-input" id="background-size">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">auto</li>
@@ -2244,7 +2304,7 @@ function createInputRow(style, isComposite) {
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="8" value="center" class="style-value-input" id="background-position">
+                <input type="text" data-selectable-selected="8" value="center" data-property="background-position" class="style-value-input" id="background-position">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">top left</li>
@@ -2330,6 +2390,7 @@ function rgbaToHex(color) {
     return `#${rgbHex}${alphaHex}`.toUpperCase();
 }
 
+let first = true;
 function pickerjs() {
     // font-color
     fontColor_pickrjs = Pickr.create({
@@ -2360,7 +2421,7 @@ function pickerjs() {
             instance.setColor(rgbaToHex($('#color').val()), true);
             $('#color').val(instance._eventBindings[4][0].value)
         }
-        instance.applyColor();
+        instance.applyColor(true);
     });
 
     fontColor_pickrjs.on('save', (color) => {
@@ -2383,6 +2444,8 @@ function pickerjs() {
                 $('#color').val(selectedColor)
             }
         }
+
+        applyStyle($('.cssSelectorValue').text(), 'color', $('#color').val())
     });
 
     fontColor_pickrjs.on('clear', () => {
@@ -2418,7 +2481,7 @@ function pickerjs() {
             instance.setColor(rgbaToHex($('#border-color').val()), true);
             $('#border-color').val(instance._eventBindings[4][0].value)
         }
-        instance.applyColor();
+        instance.applyColor(true);
     });
 
     borderColor_pickrjs.on('save', (color) => {
@@ -2447,6 +2510,8 @@ function pickerjs() {
         } else {
             $('#border').val($('#border-width').val() + " " + $('#border-style').val() + " " + $('#border-color').val());
         }
+
+        applyStyle($('.cssSelectorValue').text(), 'border', $('#border').val())
     });
 
     borderColor_pickrjs.on('clear', () => {
@@ -2482,7 +2547,6 @@ function pickerjs() {
             instance.setColor(rgbaToHex($('#outline-color').val()), true);
             $('#outline-color').val(instance._eventBindings[4][0].value)
         }
-        instance.applyColor();
     });
 
     outlineColor_pickrjs.on('save', (color) => {
@@ -2511,6 +2575,8 @@ function pickerjs() {
         } else {
             $('#outline').val($('#outline-width').val() + " " + $('#outline-style').val() + " " + $('#outline-color').val());
         }
+
+        applyStyle($('.cssSelectorValue').text(), 'outline', $('#outline').val())
     });
 
     outlineColor_pickrjs.on('clear', () => {
@@ -2546,7 +2612,7 @@ function pickerjs() {
             instance.setColor(rgbaToHex($('#background-color').val()), true);
             $('#background-color').val(instance._eventBindings[4][0].value)
         }
-        instance.applyColor();
+        instance.applyColor(true);
     });
 
     backgroundColor_pickrjs.on('save', (color) => {
@@ -2570,6 +2636,7 @@ function pickerjs() {
             }
         }
 
+        applyStyle($('.cssSelectorValue').text(), 'background-color', $('#background-color').val())
     });
 
     backgroundColor_pickrjs.on('clear', () => {
@@ -2630,6 +2697,12 @@ function pickerjs() {
         }
 
         updateShadow();
+
+        if (first) {
+            first = false
+        } else {
+            detectShadowChange();
+        }
 
     });
 
@@ -2732,7 +2805,12 @@ function selectableInit() {
             $(document).on('click', '.customOption .back', function () {
                 $(this).closest('.selectable').find('.customOption').hide();
                 $(this).closest('.selectable').find('input').show();
-                $(this).closest('.selectable').find('.selectables .options .option:first-child()').trigger('click')
+                $(this).closest('.selectable').find('.selectables .options .option:first-child()').trigger('click');
+                let prop = $(this).closest('.selectable').find('>input').data('property')
+                let val = $(this).closest('.selectable').find('>input').val()
+                setTimeout(function () {
+                    applyStyle($('.cssSelectorValue').text(), prop, val)
+                }, 500)
             });
 
             $(document).off('blur', '.custom-style-value-input').on('blur', '.custom-style-value-input', function (e) {
@@ -2823,7 +2901,6 @@ function selectableInit() {
 }
 
 function shadowInit() {
-
     if ($('#box-shadow').val() == 'none') {
         $("#xOffset").val('0');
         $("#yOffset").val('0');
@@ -2848,6 +2925,7 @@ function shadowInit() {
         $("#xOffset").val(x);
         $("#yOffset").val(y);
         updateShadow();
+        detectShadowChange();
     }
 
     handle.on("mousedown", function (e) {
@@ -2880,7 +2958,7 @@ function shadowInit() {
     });
 
     // Sync inputs with draggable UI
-    $("#xOffset, #yOffset").on("input change", function () {
+    $("#xOffset, #yOffset").on("change", function () {
         let x = parseInt($("#xOffset").val(), 10) || 0;
         let y = parseInt($("#yOffset").val(), 10) || 0;
         let boxWidth = offsetBox.width();
@@ -2890,8 +2968,44 @@ function shadowInit() {
         let newY = (y / 20) * (boxHeight / 2);
 
         handle.css({ left: newX + boxWidth / 2, top: newY + boxHeight / 2 });
-        updateShadow();
+        detectShadowChange();
     });
+
+    $("#blurRadius, #spreadRadius, #inset,#shadow-color").on("change", function () {
+        detectShadowChange();
+    });
+}
+
+function detectShadowChange() {
+    let x = $("#xOffset").val() + "px";
+    let y = $("#yOffset").val() + "px";
+    let blur = $("#blurRadius").val() + "px";
+    let spread = $("#spreadRadius").val() + "px";
+    let color = $("#shadow-color").val();
+    let inset = $("#inset").is(":checked") ? "inset" : "";
+
+    let boxShadow = "";
+
+    if (x == "0px" && y == "0px" && blur == "0px" && spread == "0px") {
+        boxShadow = "none";
+    } else {
+        boxShadow = `${inset} ${x} ${y} ${blur == '0px' ? '' : blur} ${spread == '0px' ? '' : spread} ${color}`;
+    }
+
+    $(".preview-box").css("box-shadow", boxShadow);
+    $("#box-shadow").val(boxShadow.trim().replace(/\s+/g, " "));
+
+    let xpos = parseInt($("#xOffset").val(), 10) || 0;
+    let ypos = parseInt($("#yOffset").val(), 10) || 0;
+    let boxWidth = $(".xy-offset-container").width();
+    let boxHeight = $(".xy-offset-container").height();
+
+    let newX = (xpos / 20) * (boxWidth / 2);
+    let newY = (ypos / 20) * (boxHeight / 2);
+
+    $(".xy-offset-handle").css({ left: newX + boxWidth / 2, top: newY + boxHeight / 2 });
+
+    applyStyle($('.cssSelectorValue').text(), 'box-shadow', $('#box-shadow').val())
 }
 
 function updateShadow() {
@@ -2930,6 +3044,8 @@ function updateShadowOnChange(x, y, blur, spread, color, inset) {
     $("#blurRadius").val(parseInt(blur));
     $("#spreadRadius").val(parseInt(spread));
     $("#shadow-color").val(color);
+    shadowColor_pickrjs.setColor(color, true);
+    shadowColor_pickrjs.applyColor();
 
     if (inset) {
         $("#inset").prop("checked", true);
@@ -2950,9 +3066,123 @@ function updateShadowOnChange(x, y, blur, spread, color, inset) {
     $(".preview-box").css("box-shadow", boxShadow);
     $("#box-shadow").val(boxShadow.trim().replace(/\s+/g, " "));
     $("#xOffset, #yOffset").trigger('change')
-    $("#shadow-color").trigger('blur');
 }
 
 function getPseudoElementStyles(element, pseudo) {
     return window.getComputedStyle(element, pseudo);
+}
+
+function applyStyle(selector, property, value) {
+    if (!appliedStyles[selector]) {
+        appliedStyles[selector] = {};
+    }
+
+    // Update or add the property
+    appliedStyles[selector][property] = value;
+    printAppliedStyles();
+}
+
+function printAppliedStyles(advancedStyles = $('#advancedStyles').val().trim()) {
+    let styles = [];
+
+    // Collect applied styles
+    for (const selector in appliedStyles) {
+        let cssBlock = `${selector} {\n`;
+        for (const prop in appliedStyles[selector]) {
+            cssBlock += `\t${prop}: ${appliedStyles[selector][prop]};\n`;
+        }
+        cssBlock += `}`;
+        styles.push(cssBlock);
+    }
+
+
+    // Get additional styles from the advanced input field
+    if (advancedStyles) {
+        styles.push("/*advanced custom styles*/");
+        styles.push(advancedStyles);
+    }
+
+    let cssText = styles.join("\n\n");
+
+    if ($('#dynamic-styles').length == 0) {
+        $('head').append('<style id="dynamic-styles"></style>');
+    }
+
+    $('#dynamic-styles').html(cssText);
+
+    $('.changedStyles').text(styles.join("\n\n"));
+}
+
+function formatTag(selector) {
+    let result = "";
+    let buffer = "";
+    let state = "tag"; // Possible states: "tag", "id", "class", "pseudo"
+    let classBuffer = ""; // Store all classes together
+
+    for (let i = 0; i < selector.length; i++) {
+        let char = selector[i];
+
+        if (char === "#") {
+            if (state === "tag" && buffer) {
+                result += buffer; // Append tag
+            } else if (state === "class" && classBuffer) {
+                result += `<span class="selectorClasses">${classBuffer}</span>`;
+                classBuffer = "";
+            }
+            buffer = "";
+            state = "id";
+        } else if (char === ".") {
+            if (state === "id" && buffer) {
+                result += `<span class="selectorId">#${buffer}</span>`;
+                buffer = "";
+            } else if (state === "tag" && buffer) {
+                result += buffer; // Append tag
+                buffer = "";
+            } else if (state === "class" && classBuffer) {
+                classBuffer += "."; // Ensure multiple classes get prefixed properly
+            }
+            state = "class";
+        } else if (char === ":") {
+            if (state === "id" && buffer) {
+                result += `<span class="selectorId">#${buffer}</span>`;
+                buffer = "";
+            } else if (state === "class" && classBuffer) {
+                result += `<span class="selectorClasses">${classBuffer}</span>`;
+                classBuffer = "";
+            } else if (state === "tag" && buffer) {
+                result += buffer; // Append tag
+                buffer = "";
+            }
+            buffer = char; // Start accumulating pseudo-class
+            state = "pseudo";
+        } else if (char === "(") {
+            buffer += char;
+            state = "pseudo-content";
+        } else if (char === ")") {
+            buffer += char;
+            result += `<span class="pseudo">${buffer}</span>`;
+            buffer = "";
+            state = "tag"; // Reset state
+        } else {
+            if (state === "class") {
+                if (classBuffer === "") classBuffer = "."; // Ensure first class starts with "."
+                classBuffer += char;
+            } else {
+                buffer += char;
+            }
+        }
+    }
+
+    // Append remaining buffer
+    if (state === "id" && buffer) {
+        result += `<span class="selectorId">#${buffer}</span>`;
+    } else if (state === "class" && classBuffer) {
+        result += `<span class="selectorClasses">${classBuffer}</span>`;
+    } else if (state === "pseudo" || state === "pseudo-content") {
+        result += `<span class="pseudo">${buffer}</span>`;
+    } else {
+        result += buffer; // Append tag if it's left
+    }
+
+    return result;
 }

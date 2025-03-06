@@ -750,6 +750,24 @@ a {
   border: 1px solid #ccc;
   background: #eee;
   margin-right: 10px;
+  position: relative;
+}
+.shadowGenerator .xy-offset-container::before, .shadowGenerator .xy-offset-container::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ccc;
+}
+.shadowGenerator .xy-offset-container::before {
+  width: 1px;
+  height: 100%;
+}
+.shadowGenerator .xy-offset-container::after {
+  width: 100%;
+  height: 1px;
 }
 .shadowGenerator .xy-offset-handle {
   width: 10px;
@@ -759,6 +777,7 @@ a {
   position: absolute;
   cursor: grab;
   transform: translate(-50%, -50%);
+  z-index: 1;
 }
 .shadowGenerator .values-container {
   flex: 0 0 calc(100% - 65px);
@@ -851,6 +870,22 @@ a {
   width: 20px;
   height: 20px;
   border: 1px solid red;
+}
+
+.groupTitle .selectorId {
+  color: #aaaaaa;
+}
+.groupTitle .selectorClasses {
+  color: #940101;
+}
+.groupTitle .childselector {
+  color: #948f01;
+}
+.groupTitle .pseudo {
+  color: rgb(114, 201, 172);
+}
+.groupTitle .selectorId, .groupTitle .selectorClasses, .groupTitle .childselector, .groupTitle .pseudo {
+  margin-left: 5px;
 }
 
 /*# sourceMappingURL=webbuilder.css.map */

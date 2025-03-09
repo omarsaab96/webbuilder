@@ -5,6 +5,7 @@ body {
 a {
   text-decoration: none !important;
   box-shadow: none !important;
+  color: dodgerblue;
 }
 
 .bodycontent {
@@ -18,24 +19,7 @@ a {
 .component-wrapper {
   position: relative;
 }
-.component-wrapper::after {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  transition: all 0.3s ease-in-out;
-  backdrop-filter: blur(1px);
-  background-color: rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  z-index: 1;
-}
 .component-wrapper:hover .removeOnBuild {
-  opacity: 1;
-}
-.component-wrapper:hover::after {
   opacity: 1;
 }
 
@@ -66,6 +50,13 @@ a {
   background-size: 12px;
   background-repeat: no-repeat;
   background-position: center;
+}
+.removeOnBuild.componentHoverMarker {
+  border: 3px dotted red;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .box {
@@ -368,7 +359,9 @@ a {
   background-color: rgba(179, 174, 174, 0.8);
 }
 
-.styleEditorPopup, .elementsTreePopup {
+.elementsTreePopup,
+.elementEditorPopup,
+.stylesEditorPopup {
   display: none;
   position: fixed;
   top: 0%;
@@ -380,7 +373,9 @@ a {
   width: 25%;
   height: 100%;
 }
-.styleEditorPopup .content, .elementsTreePopup .content {
+.elementsTreePopup .content,
+.elementEditorPopup .content,
+.stylesEditorPopup .content {
   width: 100%;
   position: relative;
   transform: none;
@@ -396,11 +391,69 @@ a {
   max-height: 100%;
   overflow: auto;
 }
-.styleEditorPopup .content ul, .elementsTreePopup .content ul {
+.elementsTreePopup .content .back,
+.elementEditorPopup .content .back,
+.stylesEditorPopup .content .back {
+  font-size: 12px;
+  line-height: 12px;
+  margin-bottom: 10px;
+  display: block;
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  padding-left: 17px;
+}
+.elementsTreePopup .content .back.close,
+.elementEditorPopup .content .back.close,
+.stylesEditorPopup .content .back.close {
+  background: none;
+  height: auto;
+  width: auto;
+}
+.elementsTreePopup .content .back.close::before,
+.elementEditorPopup .content .back.close::before,
+.stylesEditorPopup .content .back.close::before {
+  width: 10px;
+  height: 10px;
+  background-image: url(../builderImages/close-blue.svg);
+}
+.elementsTreePopup .content .back::before,
+.elementEditorPopup .content .back::before,
+.stylesEditorPopup .content .back::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  background-image: url(../builderImages/back.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  transform: translateY(-50%);
+}
+.elementsTreePopup .content .back:hover,
+.elementEditorPopup .content .back:hover,
+.stylesEditorPopup .content .back:hover {
+  opacity: 0.5;
+}
+.elementsTreePopup .content .popuphead .hint,
+.elementEditorPopup .content .popuphead .hint,
+.stylesEditorPopup .content .popuphead .hint {
+  font-size: 12px;
+  line-height: 12px;
+  opacity: 0.6;
+  font-style: italic;
+}
+.elementsTreePopup .content ul,
+.elementEditorPopup .content ul,
+.stylesEditorPopup .content ul {
   padding: 0;
   font-size: 14px;
 }
-.styleEditorPopup .content ul li, .elementsTreePopup .content ul li {
+.elementsTreePopup .content ul li,
+.elementEditorPopup .content ul li,
+.stylesEditorPopup .content ul li {
   list-style-type: none;
   cursor: default;
   -webkit-touch-callout: none;
@@ -410,46 +463,61 @@ a {
   -ms-user-select: none;
   user-select: none;
 }
-.styleEditorPopup .content ul li ul, .elementsTreePopup .content ul li ul {
+.elementsTreePopup .content ul li ul,
+.elementEditorPopup .content ul li ul,
+.stylesEditorPopup .content ul li ul {
   display: none;
   margin-left: 5px;
 }
-.styleEditorPopup .content ul li .liTitle, .elementsTreePopup .content ul li .liTitle {
+.elementsTreePopup .content ul li .liTitle,
+.elementEditorPopup .content ul li .liTitle,
+.stylesEditorPopup .content ul li .liTitle {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   font-size: 14px;
   line-height: 16px;
 }
-.styleEditorPopup .content ul li .liTitle .groupToggle, .elementsTreePopup .content ul li .liTitle .groupToggle {
+.elementsTreePopup .content ul li .liTitle .groupToggle,
+.elementEditorPopup .content ul li .liTitle .groupToggle,
+.stylesEditorPopup .content ul li .liTitle .groupToggle {
   width: 10px;
   height: 10px;
+  flex: 0 0 10px;
   position: relative;
   margin-right: 5px;
   cursor: pointer;
 }
-.styleEditorPopup .content ul li .liTitle .groupToggle::before, .elementsTreePopup .content ul li .liTitle .groupToggle::before {
+.elementsTreePopup .content ul li .liTitle .groupToggle::before,
+.elementEditorPopup .content ul li .liTitle .groupToggle::before,
+.stylesEditorPopup .content ul li .liTitle .groupToggle::before {
   content: "";
   display: block;
   width: 100%;
   height: 100%;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotateZ(-90deg);
+  top: 3px;
+  left: 0%;
+  transform: rotateZ(-90deg);
   background-image: url(../builderImages/downarrow.svg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
   transition: all 0.3s ease-in-out;
 }
-.styleEditorPopup .content ul li.expanded > .liTitle .groupToggle::before, .elementsTreePopup .content ul li.expanded > .liTitle .groupToggle::before {
-  transform: translate(-50%, -50%);
+.elementsTreePopup .content ul li.expanded > .liTitle .groupToggle::before,
+.elementEditorPopup .content ul li.expanded > .liTitle .groupToggle::before,
+.stylesEditorPopup .content ul li.expanded > .liTitle .groupToggle::before {
+  transform: rotateZ(0);
 }
-.styleEditorPopup .content ul li.singleElement, .elementsTreePopup .content ul li.singleElement {
+.elementsTreePopup .content ul li.singleElement,
+.elementEditorPopup .content ul li.singleElement,
+.stylesEditorPopup .content ul li.singleElement {
   padding-left: 15px;
   position: relative;
 }
-.styleEditorPopup .content ul li.singleElement::before, .elementsTreePopup .content ul li.singleElement::before {
+.elementsTreePopup .content ul li.singleElement::before,
+.elementEditorPopup .content ul li.singleElement::before,
+.stylesEditorPopup .content ul li.singleElement::before {
   content: "";
   display: block;
   position: absolute;
@@ -460,7 +528,9 @@ a {
   background-color: black;
   width: 10px;
 }
-.styleEditorPopup .content ul li.singleElement::after, .elementsTreePopup .content ul li.singleElement::after {
+.elementsTreePopup .content ul li.singleElement::after,
+.elementEditorPopup .content ul li.singleElement::after,
+.stylesEditorPopup .content ul li.singleElement::after {
   content: "";
   display: block;
   position: absolute;
@@ -470,15 +540,21 @@ a {
   background-color: black;
   width: 1px;
 }
-.styleEditorPopup .content ul li.singleElement:last-child::after, .elementsTreePopup .content ul li.singleElement:last-child::after {
+.elementsTreePopup .content ul li.singleElement:last-child::after,
+.elementEditorPopup .content ul li.singleElement:last-child::after,
+.stylesEditorPopup .content ul li.singleElement:last-child::after {
   height: 50%;
 }
-.styleEditorPopup .content .styles-container .style-group, .elementsTreePopup .content .styles-container .style-group {
+.elementsTreePopup .content .styles-container .style-group,
+.elementEditorPopup .content .styles-container .style-group,
+.stylesEditorPopup .content .styles-container .style-group {
   margin-bottom: 10px;
   border-left: 2px solid #ccc;
   padding-left: 10px;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row, .elementsTreePopup .content .styles-container .style-group .style-row {
+.elementsTreePopup .content .styles-container .style-group .style-row,
+.elementEditorPopup .content .styles-container .style-group .style-row,
+.stylesEditorPopup .content .styles-container .style-group .style-row {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -486,43 +562,65 @@ a {
   font-size: 12px;
   transition: all 0.3s ease-in-out;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row:not(.composite):hover, .elementsTreePopup .content .styles-container .style-group .style-row:not(.composite):hover {
+.elementsTreePopup .content .styles-container .style-group .style-row:not(.composite):hover,
+.elementEditorPopup .content .styles-container .style-group .style-row:not(.composite):hover,
+.stylesEditorPopup .content .styles-container .style-group .style-row:not(.composite):hover {
   background-color: #ededed;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .style-property, .elementsTreePopup .content .styles-container .style-group .style-row .style-property {
+.elementsTreePopup .content .styles-container .style-group .style-row .style-property,
+.elementEditorPopup .content .styles-container .style-group .style-row .style-property,
+.stylesEditorPopup .content .styles-container .style-group .style-row .style-property {
   font-family: monospace;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .style-value-input, .elementsTreePopup .content .styles-container .style-group .style-row .style-value-input {
+.elementsTreePopup .content .styles-container .style-group .style-row .style-value-input,
+.elementEditorPopup .content .styles-container .style-group .style-row .style-value-input,
+.stylesEditorPopup .content .styles-container .style-group .style-row .style-value-input {
   padding: 2px 5px;
   border: 1px solid #ddd;
   border-radius: 3px;
   width: 130px;
   outline: none;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .style-value-input.error, .elementsTreePopup .content .styles-container .style-group .style-row .style-value-input.error {
+.elementsTreePopup .content .styles-container .style-group .style-row .style-value-input.error,
+.elementEditorPopup .content .styles-container .style-group .style-row .style-value-input.error,
+.stylesEditorPopup .content .styles-container .style-group .style-row .style-value-input.error {
   border-color: red;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .custom-style-value-input.error, .elementsTreePopup .content .styles-container .style-group .style-row .custom-style-value-input.error {
+.elementsTreePopup .content .styles-container .style-group .style-row .custom-style-value-input.error,
+.elementEditorPopup .content .styles-container .style-group .style-row .custom-style-value-input.error,
+.stylesEditorPopup .content .styles-container .style-group .style-row .custom-style-value-input.error {
   border-color: red;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row .unit, .elementsTreePopup .content .styles-container .style-group .style-row .unit {
+.elementsTreePopup .content .styles-container .style-group .style-row .unit,
+.elementEditorPopup .content .styles-container .style-group .style-row .unit,
+.stylesEditorPopup .content .styles-container .style-group .style-row .unit {
   color: #666;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite, .elementsTreePopup .content .styles-container .style-group .style-row.composite {
+.elementsTreePopup .content .styles-container .style-group .style-row.composite,
+.elementEditorPopup .content .styles-container .style-group .style-row.composite,
+.stylesEditorPopup .content .styles-container .style-group .style-row.composite {
   font-weight: bold;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property {
+.elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property,
+.elementEditorPopup .content .styles-container .style-group .style-row.composite .style-property,
+.stylesEditorPopup .content .styles-container .style-group .style-row.composite .style-property {
   cursor: pointer;
   position: relative;
   z-index: 1;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property:hover::after, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property:hover::after {
+.elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property:hover::after,
+.elementEditorPopup .content .styles-container .style-group .style-row.composite .style-property:hover::after,
+.stylesEditorPopup .content .styles-container .style-group .style-row.composite .style-property:hover::after {
   opacity: 1;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property.open::before, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property.open::before {
+.elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property.open::before,
+.elementEditorPopup .content .styles-container .style-group .style-row.composite .style-property.open::before,
+.stylesEditorPopup .content .styles-container .style-group .style-row.composite .style-property.open::before {
   transform: translateY(-50%) rotateZ(0deg);
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property::before, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property::before {
+.elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property::before,
+.elementEditorPopup .content .styles-container .style-group .style-row.composite .style-property::before,
+.stylesEditorPopup .content .styles-container .style-group .style-row.composite .style-property::before {
   content: "";
   display: block;
   position: absolute;
@@ -537,7 +635,9 @@ a {
   background-position: center;
   transition: all 0.3s ease-in-out;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-property:after, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property:after {
+.elementsTreePopup .content .styles-container .style-group .style-row.composite .style-property:after,
+.elementEditorPopup .content .styles-container .style-group .style-row.composite .style-property:after,
+.stylesEditorPopup .content .styles-container .style-group .style-row.composite .style-property:after {
   content: "";
   display: block;
   position: absolute;
@@ -551,17 +651,50 @@ a {
   opacity: 0;
   z-index: -1;
 }
-.styleEditorPopup .content .styles-container .style-group .style-row.composite .style-value-input, .elementsTreePopup .content .styles-container .style-group .style-row.composite .style-value-input {
+.elementsTreePopup .content .styles-container .style-group .style-row.composite .style-value-input,
+.elementEditorPopup .content .styles-container .style-group .style-row.composite .style-value-input,
+.stylesEditorPopup .content .styles-container .style-group .style-row.composite .style-value-input {
   width: 130px;
 }
-.styleEditorPopup .content .styles-container .style-group.group_text .row_color input, .styleEditorPopup .content .styles-container .style-group.group_border .row_border-color input, .styleEditorPopup .content .styles-container .style-group.group_background .row_background-color input, .elementsTreePopup .content .styles-container .style-group.group_text .row_color input, .elementsTreePopup .content .styles-container .style-group.group_border .row_border-color input, .elementsTreePopup .content .styles-container .style-group.group_background .row_background-color input {
+.elementsTreePopup .content .styles-container .style-group .style-row.warn,
+.elementEditorPopup .content .styles-container .style-group .style-row.warn,
+.stylesEditorPopup .content .styles-container .style-group .style-row.warn {
+  flex-wrap: wrap;
+}
+.elementsTreePopup .content .styles-container .style-group .style-row.warn .warning,
+.elementEditorPopup .content .styles-container .style-group .style-row.warn .warning,
+.stylesEditorPopup .content .styles-container .style-group .style-row.warn .warning {
+  display: block;
+}
+.elementsTreePopup .content .styles-container .style-group .style-row .warning,
+.elementEditorPopup .content .styles-container .style-group .style-row .warning,
+.stylesEditorPopup .content .styles-container .style-group .style-row .warning {
+  display: none;
+  flex: 0 0 100%;
+}
+.elementsTreePopup .content .styles-container .style-group.group_text .row_color input, .elementsTreePopup .content .styles-container .style-group.group_border .row_border-color input, .elementsTreePopup .content .styles-container .style-group.group_background .row_background-color input,
+.elementEditorPopup .content .styles-container .style-group.group_text .row_color input,
+.elementEditorPopup .content .styles-container .style-group.group_border .row_border-color input,
+.elementEditorPopup .content .styles-container .style-group.group_background .row_background-color input,
+.stylesEditorPopup .content .styles-container .style-group.group_text .row_color input,
+.stylesEditorPopup .content .styles-container .style-group.group_border .row_border-color input,
+.stylesEditorPopup .content .styles-container .style-group.group_background .row_background-color input {
   width: 110px;
 }
-.styleEditorPopup .content .styles-container .subStylesGroup, .styleEditorPopup .content .styles-container .flexItems, .styleEditorPopup .content .styles-container .absoluteItems, .elementsTreePopup .content .styles-container .subStylesGroup, .elementsTreePopup .content .styles-container .flexItems, .elementsTreePopup .content .styles-container .absoluteItems {
+.elementsTreePopup .content .styles-container .subStylesGroup,
+.elementsTreePopup .content .styles-container .flexItems,
+.elementsTreePopup .content .styles-container .absoluteItems,
+.elementEditorPopup .content .styles-container .subStylesGroup,
+.elementEditorPopup .content .styles-container .flexItems,
+.elementEditorPopup .content .styles-container .absoluteItems,
+.stylesEditorPopup .content .styles-container .subStylesGroup,
+.stylesEditorPopup .content .styles-container .flexItems,
+.stylesEditorPopup .content .styles-container .absoluteItems {
   display: none;
 }
-
-.styleEditorPopup.show, .elementsTreePopup.show {
+.elementsTreePopup.show,
+.elementEditorPopup.show,
+.stylesEditorPopup.show {
   display: block;
 }
 
@@ -574,7 +707,7 @@ a {
   display: flex;
 }
 
-.selectedItemCSSSelector {
+.selectedElement {
   font-size: 14px;
 }
 
@@ -846,13 +979,6 @@ a {
   border: 1px solid #ddd;
 }
 
-.back {
-  font-size: 14px;
-  margin-bottom: 10px;
-  display: block;
-  position: relative;
-}
-
 #advancedStyles {
   resize: vertical;
   width: 100%;
@@ -873,7 +999,7 @@ a {
 }
 
 .groupTitle .selectorId {
-  color: #aaaaaa;
+  color: rgb(114, 201, 172);
 }
 .groupTitle .selectorClasses {
   color: #940101;
@@ -882,10 +1008,20 @@ a {
   color: #948f01;
 }
 .groupTitle .pseudo {
-  color: rgb(114, 201, 172);
+  color: #aaaaaa;
 }
-.groupTitle .selectorId, .groupTitle .selectorClasses, .groupTitle .childselector, .groupTitle .pseudo {
+.groupTitle .selectorId,
+.groupTitle .selectorClasses,
+.groupTitle .childselector {
   margin-left: 5px;
+}
+
+.elementTab_cssSelectorValue,
+.cssSelectorValue {
+  margin-bottom: 10px;
+  line-height: 14px;
+  font-size: 12px;
+  display: block;
 }
 
 /*# sourceMappingURL=webbuilder.css.map */

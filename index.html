@@ -79,13 +79,12 @@
                         //<span class="text-yellow-500">[PEND]</span> add states hover, focus<br>
                         //<span class="text-yellow-500">[PEND]</span> add after, before<br>
                         //<span class="text-yellow-500">[PEND]</span> if selector has id then no need for class<br>
-                        //<span class="text-yellow-500">[PEND]</span> add logger for undo<br><br>
+                        //<span class="text-yellow-500">[PEND]</span> add logger for undo/redo<br><br>
 
                         //NOTES<br>
                         <span class="text-muted">
-                            //colors to reflect on change<br>
-                            //padding/margin how to get the changed value?<br>
-
+                            - hasHover is always true. needs fix.<br>
+                            - edit content needs to be developed. 
                         </span>
                     </div>
 
@@ -193,10 +192,13 @@
     <div class="elementsTreePopup popup">
         <div class="content hideScrollbar flex flex-column justify-content-between">
             <div>
-                <a class="back" href="javascript:closeElementsTree();">Back to components</a>
+                <a class="back close" href="javascript:closeElementsTree();">Close</a>
 
-                <div class="popuphead mb-2 d-flex justify-content-between align-items-center">
-                    <h5>Edit styles</h5>
+                <div class="popuphead mb-2">
+                    <h5>Select element to modify</h5>
+                    <p class="text-muted hint">
+                        This is a tree showing all the children of the component. Expand and collapse nodes and click on the element you wish to modify.
+                    </p>
                 </div>
 
                 <ul id="elementListContainer">
@@ -213,17 +215,32 @@
         </div>
     </div>
     
-    <div class="styleEditorPopup popup">
+    <div class="elementEditorPopup popup">
         <div class="content hideScrollbar flex flex-column justify-content-between">
-            <p class="selectedItemCSSSelector" id="cssSelector">
+            <div class="selectedElement" id="cssSelector">
                 <!-- will be automatically populated -->
-            </p>
+            </div>
 
-            <div>
+            <!-- <div>
                 <a href="javascript:alert();" class="btn btn-primary">
                     Save New Styles
                 </a>
+            </div> -->
+
+        </div>
+    </div>
+
+    <div class="stylesEditorPopup popup">
+        <div class="content hideScrollbar flex flex-column justify-content-between">
+            <div class="stylesEditor">
+                <!-- will be automatically populated -->
             </div>
+
+            <!-- <div>
+                <a href="javascript:alert();" class="btn btn-primary">
+                    Save New Styles
+                </a>
+            </div> -->
 
         </div>
     </div>

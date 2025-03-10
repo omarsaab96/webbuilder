@@ -3502,3 +3502,22 @@ function closeStylesEditorPopup() {
     $('.stylesEditorPopup').removeClass('show')
     first = true;
 }
+
+function editTextHover() {
+    document.querySelector(".previewDiv").addEventListener("click", function (event) {
+        let target = event.target;
+
+        console.log(target)
+
+        // if (target.nodeType === Node.ELEMENT_NODE) {
+        //     target.setAttribute("contenteditable", "true");
+        // }
+
+        // if (target.tagName === "BUTTON" && target.hasAttribute("contenteditable")) {
+        //     event.preventDefault(); // Prevent button click action
+        // }
+        // if (target.tagName === "A" && target.hasAttribute("contenteditable")) {
+        //     event.preventDefault(); // Prevent button click action
+        // }
+    });
+}

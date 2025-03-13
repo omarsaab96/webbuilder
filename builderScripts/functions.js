@@ -15,6 +15,20 @@ $(document).ready(function () {
     // $('#test').on('input',function () {
     //     $('#res').text(isValidSpacingShortHand($(this).val()));
     // })
+
+    $('.contentEditDiv').click(function () {
+        if ($(this).hasClass('on')) {
+            $(this).removeClass('on')
+            $(this).find('span').text('off')
+            unwrapTextNodes();
+            contentEdit_enableClicks();
+        } else {
+            $(this).addClass('on')
+            $(this).find('span').text('on')
+            editContent();
+            contentEdit_disableClicks();
+        }
+    })
 });
 
 //GET COMPONENTS FROM BACKEND
@@ -581,21 +595,39 @@ function generateElementList(componentId) {
         // const elementStylesBefore = getStyles(selector,"::before");
         // const elementStylesAfter = getStyles(selector,"::after");
 
-        const hasHover = getPseudoElementStyles(document.querySelector(selector), ':hover');
         const hasBefore = getPseudoElementStyles(document.querySelector(selector), '::before');
         const hasAfter = getPseudoElementStyles(document.querySelector(selector), '::after');
+        const hasHoverBefore = getPseudoElementStyles(document.querySelector(selector), ':hover::before');
+        const hasHoverAfter = getPseudoElementStyles(document.querySelector(selector), ':hover::after');
+        const hasFocusBefore = getPseudoElementStyles(document.querySelector(selector), ':focus::before');
+        const hasFocusAfter = getPseudoElementStyles(document.querySelector(selector), ':focus::after');
+
+        console.log(hasHoverBefore)
 
         // Update the cssSelector element with formatted styles
-        $('#cssSelector').html(`
+        $('#elementSelector').html(`
             <a class="back" href="javascript:closeElementPopup();">Back to tree</a>
             <code class='text-muted elementTab_cssSelectorValue'>${selector}</code>
-            <ul class="elementTabs">
-                <li onclick='openContent("${selector}")'>Edit content</li>
-                <li onclick='openNormalStyles("${selector}")'>Edit styles</li>
-                ${hasHover.content != "none" ? `<li class='hoverLI' onclick='openHoverStyles("${selector}")'>Edit <code>:hover</code> styles</li>` : `<li class='hoverLI' onclick='openHoverStyles("${selector}")'>Add <code>:hover</code> styles</li>`}
+            <ul class="elementStates flex">
+                <li class="selected" onclick="">normal</li>
+                <li onclick="">hover</li>
+                <li onclick="">focus</li>
+            </ul>
+            <ul class="elementEditOptions normal">
+                <li class="normalStyles" onclick='openNormalStyles("${selector}")'>Edit styles</li>
                 ${hasBefore.content != "none" ? `<li class='beforeLI' onclick='openBeforeStyles("${selector}")'>Edit <code>::before</code> styles</li>` : `<li class='beforeLI' onclick='openBeforeStyles("${selector}")'>Add <code>::before</code> styles</li>`}
                 ${hasAfter.content != "none" ? `<li class='afterLI' onclick='openAfterStyles("${selector}")'>Edit <code>::after</code> styles</li>` : `<li class='afterLI' onclick='openAfterStyles("${selector}")'>Add <code>::after</code> styles</li>`}
-            </ul>            
+            </ul> 
+            <ul class="elementEditOptions hover">
+                <li class="hoverLI" onclick='openHoverStyles("${selector}")'>Edit <code>:hover</code> styles</li>
+                ${hasHoverBefore.content != "none" ? `<li class='hoverBeforeLI' onclick='openHoverBeforeStyles("${selector}")'>Edit <code>::before</code> styles</li>` : `<li class='hoverBeforeLI' onclick='openHoverBeforeStyles("${selector}")'>Add <code>::before</code> styles</li>`}
+                ${hasHoverAfter.content != "none" ? `<li class='hoverAfterLI' onclick='openHoverAfterStyles("${selector}")'>Edit <code>::after</code> styles</li>` : `<li class='hoverAfterLI' onclick='openHoverAfterStyles("${selector}")'>Add <code>::after</code> styles</li>`}
+            </ul>
+            <ul class="elementEditOptions focus">
+                <li class="focusLI" onclick='openFocusStyles("${selector}")'>Edit <code>:focus</code> styles</li>
+                ${hasFocusBefore.content != "none" ? `<li class='focusBeforeLI' onclick='openFocusBeforeStyles("${selector}")'>Edit <code>::before</code> styles</li>` : `<li class='focusBeforeLI' onclick='openFocusBeforeStyles("${selector}")'>Add <code>::before</code> styles</li>`}
+                ${hasFocusAfter.content != "none" ? `<li class='focusAfterLI' onclick='openFocusAfterStyles("${selector}")'>Edit <code>::after</code> styles</li>` : `<li class='focusAfterLI' onclick='openFocusAfterStyles("${selector}")'>Add <code>::after</code> styles</li>`}
+            </ul>         
         `);
 
     });
@@ -608,37 +640,86 @@ function inputChangeDetected(field, selector, property, value) {
     selector = $('.cssSelectorValue').text();
 
     if (field == "content") {
+        let state = $('.elementStates').find('.selected').text();
         let pseudo = $('.cssSelectorValue').text().split("::")[1];
-        console.log(pseudo)
+
         if (value.trim() == "" || value.trim() == "none") {
             $('#' + field).val("none");
             $('#' + field).closest('.row_' + field).addClass('warn');
             $('#' + field).closest('.row_' + field).find('.warning').text("If content is none, ::" + pseudo + " will not be rendered.");
 
             if (pseudo == "before") {
-                let oldHtml = $('.beforeLI').html();
-                let newHtml = oldHtml.replace(/Edit/g, "Add");
-                $('.beforeLI').html(newHtml)
+                if (state == "normal") {
+                    let oldHtml = $('.beforeLI').html();
+                    let newHtml = oldHtml.replace(/Edit/g, "Add");
+                    $('.beforeLI').html(newHtml)
+                }
+                if (state == "hover") {
+                    let oldHtml = $('.hoverBeforeLI').html();
+                    let newHtml = oldHtml.replace(/Edit/g, "Add");
+                    $('.hoverBeforeLI').html(newHtml)
+                }
+                if (state == "focus") {
+                    let oldHtml = $('.focusBeforeLI').html();
+                    let newHtml = oldHtml.replace(/Edit/g, "Add");
+                    $('.focusBeforeLI').html(newHtml)
+                }
             }
 
             if (pseudo == "after") {
-                let oldHtml = $('.afterLI').html();
-                let newHtml = oldHtml.replace(/Edit/g, "Add");
-                $('.afterLI').html(newHtml)
+                if (state == "normal") {
+                    let oldHtml = $('.afterLI').html();
+                    let newHtml = oldHtml.replace(/Edit/g, "Add");
+                    $('.afterLI').html(newHtml)
+                }
+                if (state == "hover") {
+                    let oldHtml = $('.hoverAfterLI').html();
+                    let newHtml = oldHtml.replace(/Edit/g, "Add");
+                    $('.hoverAfterLI').html(newHtml)
+                }
+                if (state == "focus") {
+                    let oldHtml = $('.focusAfterLI').html();
+                    let newHtml = oldHtml.replace(/Edit/g, "Add");
+                    $('.focusAfterLI').html(newHtml)
+                }
             }
 
         } else {
             $('#' + field).closest('.row_' + field).removeClass('warn');
 
             if (pseudo == "before") {
-                let oldHtml = $('.beforeLI').html();
-                let newHtml = oldHtml.replace(/Add/g, "Edit");
-                $('.beforeLI').html(newHtml)
+                if (state == "normal") {
+                    let oldHtml = $('.beforeLI').html();
+                    let newHtml = oldHtml.replace(/Add/g, "Edit");
+                    $('.beforeLI').html(newHtml)
+                }
+                if (state == "hover") {
+                    let oldHtml = $('.hoverBeforeLI').html();
+                    let newHtml = oldHtml.replace(/Add/g, "Edit");
+                    $('.hoverBeforeLI').html(newHtml)
+                }
+                if (state == "focus") {
+                    let oldHtml = $('.focusBeforeLI').html();
+                    let newHtml = oldHtml.replace(/Add/g, "Edit");
+                    $('.focusBeforeLI').html(newHtml)
+                }
             }
             if (pseudo == "after") {
-                let oldHtml = $('.afterLI').html();
-                let newHtml = oldHtml.replace(/Add/g, "Edit");
-                $('.afterLI').html(newHtml)
+                if (state == "normal") {
+                    let oldHtml = $('.afterLI').html();
+                    let newHtml = oldHtml.replace(/Add/g, "Edit");
+                    $('.afterLI').html(newHtml)
+                }
+                if (state == "hover") {
+                    let oldHtml = $('.hoverAfterLI').html();
+                    let newHtml = oldHtml.replace(/Add/g, "Edit");
+                    $('.hoverAfterLI').html(newHtml)
+                }
+                if (state == "focus") {
+                    let oldHtml = $('.focusAfterLI').html();
+                    let newHtml = oldHtml.replace(/Add/g, "Edit");
+                    $('.focusAfterLI').html(newHtml)
+                }
             }
         }
         applyStyle(selector, property, $('#' + field).val())
@@ -2113,7 +2194,7 @@ function getStyles(element, pseudo = false) {
     if (pseudo) {
         elementStyles = window.getComputedStyle(targetElement, pseudo)
 
-        if (pseudo == "::before" || pseudo == "::after") {
+        if (pseudo == "::before" || pseudo == "::after" || pseudo == ":hover::before" || pseudo == ":hover::after" || pseudo == ":focus::before" || pseudo == ":focus::after") {
             propertiesToGet.unshift('content');
         }
     }
@@ -3340,6 +3421,160 @@ function openBeforeStyles(selector) {
     showStylesEditorPopup();
 }
 
+function openHoverBeforeStyles(selector) {
+    const elementStyles = getStyles(selector, ":hover::before");
+    $('.stylesEditorPopup .stylesEditor').html('')
+    $('.stylesEditorPopup .stylesEditor').append(`
+        <a class="back" href="javascript:closeStylesEditorPopup();">Back to element</a>
+        <div class="popuphead mb-3">
+            <code class="text-muted cssSelectorValue">${selector}:hover::before</code>
+            <h5>::before styles</h5>
+        </div>
+        <div class="styles-container normalstyles">${formatStylesForDisplay(elementStyles)}</div>
+    `);
+
+    //expand/collapse style groups
+    $('.style-group').each(function () {
+        //wrap all the divs with class sub-property in a div with class subStylesGroup if style-group has an element with class composite
+        if ($(this).find('.composite').length > 0) {
+            $(this).find('.sub-property').wrapAll('<div class="subStylesGroup"></div>');
+            $(this).find('.composite .style-property').click(function () {
+                if ($(this).hasClass('open')) {
+                    $(this).removeClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideUp();
+                } else {
+                    $(this).addClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideDown();
+                }
+            });
+        }
+    });
+
+    $('.group_shadow .subStylesGroup').append(`
+        <div class='shadowGenerator'>
+            <div class="preview-box">Preview</div>
+            <div class="controls">
+                <div class="xy-offset-container">
+                    <div class="xy-offset-handle"></div>
+                </div>
+                <div class="values-container">
+                    <div class="lbldiv chckbx">
+                        <input type="checkbox" id="inset">
+                        <label for="inset">Inset</label>
+                    </div>
+                    <label><div class="lbldiv">X Offset</div><input type="number" id="xOffset"></label>
+                    <label><div class="lbldiv">Y Offset</div><input type="number" id="yOffset"></label>
+                    <label><div class="lbldiv">Blur</div><input type="number" id="blurRadius"></label>
+                    <label><div class="lbldiv">Spread</div><input type="number" id="spreadRadius"></label>
+                    <div class="flex align-items-center justify-content-between shadowcolordiv">
+                        <input type="text" class="style-value-input" id="shadow-color" data-property="color" value="transparent">
+                        <div class="pickrjs" data-property="shadow-color"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+
+    shadowInit();
+
+    // Add change listeners to the new inputs
+    setTimeout(function () {
+        $('.style-value-input').on('blur', function () {
+            const property = $(this).data('property');
+            const value = $(this).val();
+            inputChangeDetected(this.id, selector, property, value);
+        });
+        $('.style-value-input').on('input', function () {
+            $(this).removeClass('error');
+        });
+
+        // group conditional Fields
+        $('.row_flex-direction,.row_align-items,.row_justify-content').wrapAll("<div class='flexItems'></div>")
+        $('.row_top,.row_right,.row_bottom,.row_left').wrapAll("<div class='absoluteItems'></div>")
+    }, 1000);
+
+    pickerjs();
+    selectableInit();
+
+    showStylesEditorPopup();
+}
+
+function openFocusBeforeStyles(selector) {
+    const elementStyles = getStyles(selector, ":focus::before");
+    $('.stylesEditorPopup .stylesEditor').html('')
+    $('.stylesEditorPopup .stylesEditor').append(`
+        <a class="back" href="javascript:closeStylesEditorPopup();">Back to element</a>
+        <div class="popuphead mb-3">
+            <code class="text-muted cssSelectorValue">${selector}:focus::before</code>
+            <h5>::before styles</h5>
+        </div>
+        <div class="styles-container normalstyles">${formatStylesForDisplay(elementStyles)}</div>
+    `);
+
+    //expand/collapse style groups
+    $('.style-group').each(function () {
+        //wrap all the divs with class sub-property in a div with class subStylesGroup if style-group has an element with class composite
+        if ($(this).find('.composite').length > 0) {
+            $(this).find('.sub-property').wrapAll('<div class="subStylesGroup"></div>');
+            $(this).find('.composite .style-property').click(function () {
+                if ($(this).hasClass('open')) {
+                    $(this).removeClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideUp();
+                } else {
+                    $(this).addClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideDown();
+                }
+            });
+        }
+    });
+
+    $('.group_shadow .subStylesGroup').append(`
+        <div class='shadowGenerator'>
+            <div class="preview-box">Preview</div>
+            <div class="controls">
+                <div class="xy-offset-container">
+                    <div class="xy-offset-handle"></div>
+                </div>
+                <div class="values-container">
+                    <div class="lbldiv chckbx">
+                        <input type="checkbox" id="inset">
+                        <label for="inset">Inset</label>
+                    </div>
+                    <label><div class="lbldiv">X Offset</div><input type="number" id="xOffset"></label>
+                    <label><div class="lbldiv">Y Offset</div><input type="number" id="yOffset"></label>
+                    <label><div class="lbldiv">Blur</div><input type="number" id="blurRadius"></label>
+                    <label><div class="lbldiv">Spread</div><input type="number" id="spreadRadius"></label>
+                    <div class="flex align-items-center justify-content-between shadowcolordiv">
+                        <input type="text" class="style-value-input" id="shadow-color" data-property="color" value="transparent">
+                        <div class="pickrjs" data-property="shadow-color"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+
+    shadowInit();
+
+    // Add change listeners to the new inputs
+    setTimeout(function () {
+        $('.style-value-input').on('blur', function () {
+            const property = $(this).data('property');
+            const value = $(this).val();
+            inputChangeDetected(this.id, selector, property, value);
+        });
+        $('.style-value-input').on('input', function () {
+            $(this).removeClass('error');
+        });
+
+        // group conditional Fields
+        $('.row_flex-direction,.row_align-items,.row_justify-content').wrapAll("<div class='flexItems'></div>")
+        $('.row_top,.row_right,.row_bottom,.row_left').wrapAll("<div class='absoluteItems'></div>")
+    }, 1000);
+
+    pickerjs();
+    selectableInit();
+
+    showStylesEditorPopup();
+}
+
 function openAfterStyles(selector) {
     const elementStyles = getStyles(selector, "::after");
     $('.stylesEditorPopup .stylesEditor').html('')
@@ -3347,6 +3582,160 @@ function openAfterStyles(selector) {
         <a class="back" href="javascript:closeStylesEditorPopup();">Back to element</a>
         <div class="popuphead mb-3">
             <code class="text-muted cssSelectorValue">${selector}::after</code>
+            <h5>::after styles</h5>
+        </div>
+        <div class="styles-container normalstyles">${formatStylesForDisplay(elementStyles)}</div>
+    `);
+
+    //expand/collapse style groups
+    $('.style-group').each(function () {
+        //wrap all the divs with class sub-property in a div with class subStylesGroup if style-group has an element with class composite
+        if ($(this).find('.composite').length > 0) {
+            $(this).find('.sub-property').wrapAll('<div class="subStylesGroup"></div>');
+            $(this).find('.composite .style-property').click(function () {
+                if ($(this).hasClass('open')) {
+                    $(this).removeClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideUp();
+                } else {
+                    $(this).addClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideDown();
+                }
+            });
+        }
+    });
+
+    $('.group_shadow .subStylesGroup').append(`
+        <div class='shadowGenerator'>
+            <div class="preview-box">Preview</div>
+            <div class="controls">
+                <div class="xy-offset-container">
+                    <div class="xy-offset-handle"></div>
+                </div>
+                <div class="values-container">
+                    <div class="lbldiv chckbx">
+                        <input type="checkbox" id="inset">
+                        <label for="inset">Inset</label>
+                    </div>
+                    <label><div class="lbldiv">X Offset</div><input type="number" id="xOffset"></label>
+                    <label><div class="lbldiv">Y Offset</div><input type="number" id="yOffset"></label>
+                    <label><div class="lbldiv">Blur</div><input type="number" id="blurRadius"></label>
+                    <label><div class="lbldiv">Spread</div><input type="number" id="spreadRadius"></label>
+                    <div class="flex align-items-center justify-content-between shadowcolordiv">
+                        <input type="text" class="style-value-input" id="shadow-color" data-property="color" value="transparent">
+                        <div class="pickrjs" data-property="shadow-color"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+
+    shadowInit();
+
+    // Add change listeners to the new inputs
+    setTimeout(function () {
+        $('.style-value-input').on('blur', function () {
+            const property = $(this).data('property');
+            const value = $(this).val();
+            inputChangeDetected(this.id, selector, property, value);
+        });
+        $('.style-value-input').on('input', function () {
+            $(this).removeClass('error');
+        });
+
+        // group conditional Fields
+        $('.row_flex-direction,.row_align-items,.row_justify-content').wrapAll("<div class='flexItems'></div>")
+        $('.row_top,.row_right,.row_bottom,.row_left').wrapAll("<div class='absoluteItems'></div>")
+    }, 1000);
+
+    pickerjs();
+    selectableInit();
+
+    showStylesEditorPopup();
+}
+
+function openHoverAfterStyles(selector) {
+    const elementStyles = getStyles(selector, ":hover::after");
+    $('.stylesEditorPopup .stylesEditor').html('')
+    $('.stylesEditorPopup .stylesEditor').append(`
+        <a class="back" href="javascript:closeStylesEditorPopup();">Back to element</a>
+        <div class="popuphead mb-3">
+            <code class="text-muted cssSelectorValue">${selector}:hover::after</code>
+            <h5>::after styles</h5>
+        </div>
+        <div class="styles-container normalstyles">${formatStylesForDisplay(elementStyles)}</div>
+    `);
+
+    //expand/collapse style groups
+    $('.style-group').each(function () {
+        //wrap all the divs with class sub-property in a div with class subStylesGroup if style-group has an element with class composite
+        if ($(this).find('.composite').length > 0) {
+            $(this).find('.sub-property').wrapAll('<div class="subStylesGroup"></div>');
+            $(this).find('.composite .style-property').click(function () {
+                if ($(this).hasClass('open')) {
+                    $(this).removeClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideUp();
+                } else {
+                    $(this).addClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideDown();
+                }
+            });
+        }
+    });
+
+    $('.group_shadow .subStylesGroup').append(`
+        <div class='shadowGenerator'>
+            <div class="preview-box">Preview</div>
+            <div class="controls">
+                <div class="xy-offset-container">
+                    <div class="xy-offset-handle"></div>
+                </div>
+                <div class="values-container">
+                    <div class="lbldiv chckbx">
+                        <input type="checkbox" id="inset">
+                        <label for="inset">Inset</label>
+                    </div>
+                    <label><div class="lbldiv">X Offset</div><input type="number" id="xOffset"></label>
+                    <label><div class="lbldiv">Y Offset</div><input type="number" id="yOffset"></label>
+                    <label><div class="lbldiv">Blur</div><input type="number" id="blurRadius"></label>
+                    <label><div class="lbldiv">Spread</div><input type="number" id="spreadRadius"></label>
+                    <div class="flex align-items-center justify-content-between shadowcolordiv">
+                        <input type="text" class="style-value-input" id="shadow-color" data-property="color" value="transparent">
+                        <div class="pickrjs" data-property="shadow-color"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+
+    shadowInit();
+
+    // Add change listeners to the new inputs
+    setTimeout(function () {
+        $('.style-value-input').on('blur', function () {
+            const property = $(this).data('property');
+            const value = $(this).val();
+            inputChangeDetected(this.id, selector, property, value);
+        });
+        $('.style-value-input').on('input', function () {
+            $(this).removeClass('error');
+        });
+
+        // group conditional Fields
+        $('.row_flex-direction,.row_align-items,.row_justify-content').wrapAll("<div class='flexItems'></div>")
+        $('.row_top,.row_right,.row_bottom,.row_left').wrapAll("<div class='absoluteItems'></div>")
+    }, 1000);
+
+    pickerjs();
+    selectableInit();
+
+    showStylesEditorPopup();
+}
+
+function openFocusAfterStyles(selector) {
+    const elementStyles = getStyles(selector, ":focus::after");
+    $('.stylesEditorPopup .stylesEditor').html('')
+    $('.stylesEditorPopup .stylesEditor').append(`
+        <a class="back" href="javascript:closeStylesEditorPopup();">Back to element</a>
+        <div class="popuphead mb-3">
+            <code class="text-muted cssSelectorValue">${selector}:focus::after</code>
             <h5>::after styles</h5>
         </div>
         <div class="styles-container normalstyles">${formatStylesForDisplay(elementStyles)}</div>
@@ -3494,6 +3883,83 @@ function openHoverStyles(selector) {
     showStylesEditorPopup();
 }
 
+function openFocusStyles(selector) {
+    const elementStyles = getStyles(selector, ":focus");
+    $('.stylesEditorPopup .stylesEditor').html('')
+    $('.stylesEditorPopup .stylesEditor').append(`
+        <a class="back" href="javascript:closeStylesEditorPopup();">Back to element</a>
+        <div class="popuphead mb-3">
+            <code class="text-muted cssSelectorValue">${selector}:focus</code>
+            <h5>:hover styles</h5>
+        </div>
+        <div class="styles-container normalstyles">${formatStylesForDisplay(elementStyles)}</div>
+    `);
+
+    //expand/collapse style groups
+    $('.style-group').each(function () {
+        //wrap all the divs with class sub-property in a div with class subStylesGroup if style-group has an element with class composite
+        if ($(this).find('.composite').length > 0) {
+            $(this).find('.sub-property').wrapAll('<div class="subStylesGroup"></div>');
+            $(this).find('.composite .style-property').click(function () {
+                if ($(this).hasClass('open')) {
+                    $(this).removeClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideUp();
+                } else {
+                    $(this).addClass('open')
+                    $(this).parent().parent().find('.subStylesGroup').slideDown();
+                }
+            });
+        }
+    });
+
+    $('.group_shadow .subStylesGroup').append(`
+        <div class='shadowGenerator'>
+            <div class="preview-box">Preview</div>
+            <div class="controls">
+                <div class="xy-offset-container">
+                    <div class="xy-offset-handle"></div>
+                </div>
+                <div class="values-container">
+                    <div class="lbldiv chckbx">
+                        <input type="checkbox" id="inset">
+                        <label for="inset">Inset</label>
+                    </div>
+                    <label><div class="lbldiv">X Offset</div><input type="number" id="xOffset"></label>
+                    <label><div class="lbldiv">Y Offset</div><input type="number" id="yOffset"></label>
+                    <label><div class="lbldiv">Blur</div><input type="number" id="blurRadius"></label>
+                    <label><div class="lbldiv">Spread</div><input type="number" id="spreadRadius"></label>
+                    <div class="flex align-items-center justify-content-between shadowcolordiv">
+                        <input type="text" class="style-value-input" id="shadow-color" data-property="color" value="transparent">
+                        <div class="pickrjs" data-property="shadow-color"></div>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+
+    shadowInit();
+
+    // Add change listeners to the new inputs
+    setTimeout(function () {
+        $('.style-value-input').on('blur', function () {
+            const property = $(this).data('property');
+            const value = $(this).val();
+            inputChangeDetected(this.id, selector, property, value);
+        });
+        $('.style-value-input').on('input', function () {
+            $(this).removeClass('error');
+        });
+
+        // group conditional Fields
+        $('.row_flex-direction,.row_align-items,.row_justify-content').wrapAll("<div class='flexItems'></div>")
+        $('.row_top,.row_right,.row_bottom,.row_left').wrapAll("<div class='absoluteItems'></div>")
+    }, 1000);
+
+    pickerjs();
+    selectableInit();
+
+    showStylesEditorPopup();
+}
+
 function showStylesEditorPopup() {
     $('.stylesEditorPopup').addClass('show')
 }
@@ -3503,21 +3969,42 @@ function closeStylesEditorPopup() {
     first = true;
 }
 
-function editTextHover() {
-    document.querySelector(".previewDiv").addEventListener("click", function (event) {
-        let target = event.target;
+function editContent() {
+    wrapTextNodes($(".previewDiv"));
+}
 
-        console.log(target)
+function wrapTextNodes(node) {
+    $(node)
+        .contents()
+        .each(function () {
+            if (this.nodeType === 3 && $.trim(this.nodeValue).length > 0) {
+                var $span = $("<span>")
+                    .css({
+                        background: "yellow",
+                    })
+                    .attr("contenteditable", "true")
+                    .addClass("editable-text")
+                    .text(this.nodeValue);
+                $(this).replaceWith($span);
+            } else if (this.nodeType === 1) {
+                wrapTextNodes(this); // Recursive call for child elements
+            }
+        });
+}
 
-        // if (target.nodeType === Node.ELEMENT_NODE) {
-        //     target.setAttribute("contenteditable", "true");
-        // }
-
-        // if (target.tagName === "BUTTON" && target.hasAttribute("contenteditable")) {
-        //     event.preventDefault(); // Prevent button click action
-        // }
-        // if (target.tagName === "A" && target.hasAttribute("contenteditable")) {
-        //     event.preventDefault(); // Prevent button click action
-        // }
+function unwrapTextNodes() {
+    $(".editable-text").each(function () {
+        $(this).replaceWith($(this).text()); // Remove the span and keep only the text
     });
+}
+
+function contentEdit_disableClicks() {
+    $('.previewDiv').findAll("button, a").addClass("disabledforcontentedit").on("click.contentEditprevent", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+}
+
+function contentEdit_enableClicks() {
+    $('.previewDiv').findAll("button, a").removeClass("disabledforcontentedit").off("click.contentEditprevent");
 }

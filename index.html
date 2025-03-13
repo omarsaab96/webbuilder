@@ -20,6 +20,9 @@
 
 <body>
     <div class="bodycontent container-fluid">
+        <div class="col-12 contentEditDiv text-right">
+            content edit <span >off</span>
+        </div>
         <div class="row">
             <div class="components col-3 hideScrollbar">
                 <div class="componentsBox box flex-column justify-content-between show">
@@ -77,14 +80,13 @@
                         //<span class="text-green-500">[DONE]</span> border/outline color error on composite input if color is string(red,blue...)<br>
                         //<span class="text-green-500">[DONE]</span> shadow color error on composite input not updating pickr<br>
                         //<span class="text-yellow-500">[PEND]</span> add states hover, focus<br>
-                        //<span class="text-yellow-500">[PEND]</span> add after, before<br>
+                        //<span class="text-green-500">[DONE]</span> add after, before<br>
                         //<span class="text-yellow-500">[PEND]</span> if selector has id then no need for class<br>
                         //<span class="text-yellow-500">[PEND]</span> add logger for undo/redo<br><br>
 
                         //NOTES<br>
                         <span class="text-muted">
                             - hasHover is always true. needs fix.<br>
-                            - edit content needs to be developed. 
                         </span>
                     </div>
 
@@ -217,7 +219,7 @@
     
     <div class="elementEditorPopup popup">
         <div class="content hideScrollbar flex flex-column justify-content-between">
-            <div class="selectedElement" id="cssSelector">
+            <div class="selectedElement" id="elementSelector">
                 <!-- will be automatically populated -->
             </div>
 

@@ -12,8 +12,7 @@ a {
     background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
 
     >.row {
-        height: 100%;
-        min-height: 100vh;
+        height: calc(100vh - 24px);
     }
 }
 
@@ -145,7 +144,7 @@ a {
 
 .website {
     padding: 10px;
-    max-height: 100vh;
+    max-height: 100%;
 }
 
 .previewDiv {
@@ -1136,4 +1135,15 @@ a {
     font-size: 12px;
     display: block;
 
+}
+
+.contentEditDiv{
+    span{
+        color:red;
+    }
+    &.on{
+        span{
+            color:rgb(0, 255, 0);
+        }
+    }
 }

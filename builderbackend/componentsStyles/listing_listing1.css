@@ -1,0 +1,32 @@
+.testsection {
+    padding: 20px;
+}
+
+.testUl{
+    list-style-type: none;
+    padding: 0;
+}
+
+.testUl li {
+    background-color: #f39c12;
+    padding: 10px;
+    margin: 5px 0;
+    position: relative;
+}
+.testUl li:hover::before {
+	content: "";
+	width: 10px;
+	height: 10px;
+	border: 1px solid #FF0000;
+	position: absolute;
+	right: 747.8px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,-50%);
+}
+
+/* @container (max-width: 600px) {
+    .testUl li {
+        background-color: red;
+    }
+} */

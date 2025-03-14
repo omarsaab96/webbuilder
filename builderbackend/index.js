@@ -125,6 +125,7 @@ app.get('/component/:type/:filename', (req, res) => {
 
     // Define the path to the file based on the type (folder) and filename
     const filePath = path.join(__dirname, 'builderComponents', type, filename);
+    const stylesPath = path.join(__dirname, 'componentsStyles', type+"_"+filename.split(".")[0]+".css");
 
     // Check if the file exists and read its content
     fs.readFile(filePath, 'utf8', (err, data) => {
@@ -133,8 +134,16 @@ app.get('/component/:type/:filename', (req, res) => {
             return res.status(404).send('Component not found');
         }
 
-        // Send the HTML content back to the frontend
-        res.send(data);
+       // Check if the CSS file exists and read it if available
+       fs.readFile(stylesPath, 'utf8', (cssErr, cssContent) => {
+        if (cssErr) {
+            cssContent = null; // Set to null if CSS file is not found
+        }
+
+        // Send the JSON response with HTML content and CSS content
+        res.json({ html: data, css: cssContent });
+    });
+
     });
 });
 

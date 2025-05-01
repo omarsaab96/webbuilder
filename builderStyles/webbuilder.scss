@@ -856,6 +856,10 @@ a {
             background-position: center;
             background-repeat: no-repeat;
             background-size: 12px;
+
+            &::before{
+                display:none;
+            }
         }
 
         .enter {

@@ -700,10 +700,12 @@ function generateElementList(componentId) {
 }
 
 function inputChangeDetected(field, selector, property, value) {
+    selector = $('.cssSelectorValue').text();
+    
     const element = document.querySelector(selector);
     if (!element) return;
 
-    selector = $('.cssSelectorValue').text();
+    
 
     if (field == "content") {
         let state = $('.elementStates').find('.selected').text();
@@ -1291,6 +1293,15 @@ function inputChangeDetected(field, selector, property, value) {
             applyStyle(selector, property, $('#transform').val())
         }
     }
+    
+    if (field == "transition") {
+        if (!isValidTransition(value)) {
+            $('#' + field).addClass('error');
+            return;
+        } else {
+            applyStyle(selector, property, $('#transition').val())
+        }
+    }
 
     //save advanced
     if (field == "advancedStyles") {
@@ -1302,6 +1313,10 @@ function inputChangeDetected(field, selector, property, value) {
 
 function isValidTransform(value) {
     return CSS.supports("transform", value)
+}
+
+function isValidTransition(value) {
+    return CSS.supports("transition", value)
 }
 
 function isValidZindex(value) {
@@ -1945,7 +1960,7 @@ function isValidBorderStyle(value) {
 }
 
 const compositeProperties = {
-    'layout': ['position', 'display', 'flex-direction', 'align-items', 'justify-content', 'top', 'right', 'bottom', 'left', 'transform', 'z-index', 'overflow', 'visibility'],
+    'layout': ['position', 'display', 'flex-direction', 'align-items', 'justify-content', 'top', 'right', 'bottom', 'left', 'transform','transition', 'z-index', 'overflow', 'visibility'],
     'dimensions': ['width', 'height', 'min-width', 'min-height', 'max-width', 'max-height'],
     'text': ['color', 'font-family', 'font-size', 'line-height'],
     'border': ['border-width', 'border-style', 'border-color'],
@@ -2212,6 +2227,7 @@ function getStyles(element, pseudo = false) {
         'bottom',
         'left',
         'transform',
+        'transition',
         'z-index',
         'overflow',
         'visibility',
@@ -2280,6 +2296,7 @@ function createInputRow(style, isComposite) {
     let inputValue = style.value;
     let additionalElement = '';
     let hasWarning = false;
+    let valueIndex;
 
     if (style.property == "content") {
         hasWarning = true
@@ -2292,10 +2309,27 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "position") {
+        switch (style.value){
+            case "relative":
+                valueIndex=1
+            break;
+            case "absolute":
+                valueIndex=2
+            break;
+            case "fixed":
+                valueIndex=3
+            break;
+            case "static":
+                valueIndex=4
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" data-property="position" value="relative" class="style-value-input" id="position">
+                <input type="text" data-selectable-selected="${valueIndex}" data-property="position" value="${style.value}" class="style-value-input" id="position">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">relative</li>
@@ -2309,10 +2343,30 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "display") {
+        switch (style.value){
+            case "block":
+                valueIndex=1
+            break;
+            case "inline-block":
+                valueIndex=2
+            break;
+            case "flex":
+                valueIndex=3
+            break;
+            case "inline-flex":
+                valueIndex=4
+            break;
+            case "none":
+                valueIndex=5
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="block" data-property="display" class="style-value-input" id="display">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="display" class="style-value-input" id="display">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">block</li>
@@ -2327,10 +2381,27 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "flex-direction") {
+        switch (style.value){
+            case "row":
+                valueIndex=1
+            break;
+            case "row-inverse":
+                valueIndex=2
+            break;
+            case "column":
+                valueIndex=3
+            break;
+            case "column-inverse":
+                valueIndex=4
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="row" data-property="flex-direction" class="style-value-input" id="flex-direction">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="flex-direction" class="style-value-input" id="flex-direction">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">row</li>
@@ -2344,10 +2415,30 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "align-items") {
+        switch (style.value){
+            case "flex-start":
+                valueIndex=1
+            break;
+            case "flex-end":
+                valueIndex=2
+            break;
+            case "center":
+                valueIndex=3
+            break;
+            case "baseline":
+                valueIndex=4
+            break;
+            case "stretch":
+                valueIndex=5
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="flex-start" data-property="align-items" class="style-value-input" id="align-items">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="align-items" class="style-value-input" id="align-items">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">flex-start</li>
@@ -2362,10 +2453,33 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "justify-content") {
+        switch (style.value){
+            case "flex-start":
+                valueIndex=1
+            break;
+            case "flex-end":
+                valueIndex=2
+            break;
+            case "center":
+                valueIndex=3
+            break;
+            case "space-between":
+                valueIndex=4
+            break;
+            case "space-around":
+                valueIndex=5
+            break;
+            case "space-evenly":
+                valueIndex=6
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="flex-start" data-property="justify-content" class="style-value-input" id="justify-content">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="justify-content" class="style-value-input" id="justify-content">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">flex-start</li>
@@ -2381,10 +2495,24 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "overflow") {
+        switch (style.value){
+            case "visible":
+                valueIndex=1
+            break;
+            case "auto":
+                valueIndex=2
+            break;
+            case "hidden":
+                valueIndex=3
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="visible" data-property="overflow" class="style-value-input" id="overflow">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="overflow" class="style-value-input" id="overflow">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">visible</li>
@@ -2397,10 +2525,21 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "visibility") {
+        switch (style.value){
+            case "visible":
+                valueIndex=1
+            break;
+            case "hidden":
+                valueIndex=2
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="visible" data-property="visibility" class="style-value-input" id="visibility">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="visibility" class="style-value-input" id="visibility">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">visible</li>
@@ -2412,10 +2551,27 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "background-repeat") {
+        switch (style.value){
+            case "no-repeat":
+                valueIndex=1
+            break;
+            case "repeat":
+                valueIndex=2
+            break;
+            case "repeat-x":
+                valueIndex=3
+            break;
+            case "repeat-y":
+                valueIndex=4
+            break;
+            default:
+                valueIndex=1;
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="no-repeat" data-property="background-repeat" class="style-value-input"  id="background-repeat">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="background-repeat" class="style-value-input"  id="background-repeat">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">no-repeat</li>
@@ -2429,10 +2585,24 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "background-size") {
+        switch (style.value){
+            case "auto":
+                valueIndex=1
+            break;
+            case "cover":
+                valueIndex=2
+            break;
+            case "contain":
+                valueIndex=3
+            break;
+            default:
+                valueIndex="custom";
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="1" value="auto" data-property="background-size" class="style-value-input" id="background-size">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="background-size" class="style-value-input" id="background-size">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">auto</li>
@@ -2446,10 +2616,42 @@ function createInputRow(style, isComposite) {
     }
 
     if (style.property == "background-position") {
+        switch (style.value){
+            case "top left":
+                valueIndex=1
+            break;
+            case "top center":
+                valueIndex=2
+            break;
+            case "top right":
+                valueIndex=3
+            break;
+            case "bottom right":
+                valueIndex=4
+            break;
+            case "bottom center":
+                valueIndex=5
+            break;
+            case "bottom left":
+                valueIndex=6
+            break;
+            case "center left":
+                valueIndex=7
+            break;
+            case "center":
+                valueIndex=8
+            break;
+            case "center right":
+                valueIndex=9
+            break;
+            default:
+                valueIndex='custom';
+            break;
+        }
         return `<div class="style-row sub-property row_${style.property}">
         <span class="style-property">${style.property}:</span>
             <div class="selectable">
-                <input type="text" data-selectable-selected="8" value="center" data-property="background-position" class="style-value-input" id="background-position">
+                <input type="text" data-selectable-selected="${valueIndex}" value="${style.value}" data-property="background-position" class="style-value-input" id="background-position">
                     <div class="selectables">
                         <ul class="options">
                             <li class="option" data-selectable-value="1">top left</li>

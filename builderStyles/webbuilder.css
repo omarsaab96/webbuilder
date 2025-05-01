@@ -799,6 +799,9 @@ a {
   background-repeat: no-repeat;
   background-size: 12px;
 }
+.selectable .customOption .back::before {
+  display: none;
+}
 .selectable .customOption .enter {
   position: absolute;
   top: 50%;
